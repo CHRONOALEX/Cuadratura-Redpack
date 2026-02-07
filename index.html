@@ -78,14 +78,6 @@
                     <p id="statusViajes" class="mt-4 text-[10px] text-gray-400 uppercase tracking-widest font-bold">Esperando archivo...</p>
                 </div>
 
-                <div class="mt-6 bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center space-x-4">
-                    <div class="bg-green-500 text-white p-2 rounded-lg"><i class="fas fa-link"></i></div>
-                    <div class="text-xs">
-                        <p class="font-bold text-green-800">Conexión con Google Sheets</p>
-                        <p class="text-green-600 truncate max-w-xs">Hoja: GUIAS | Columna: Pedido Referencia externa</p>
-                    </div>
-                </div>
-
                 <div class="mt-10 text-center">
                     <button id="btn-process" onclick="processData()" class="bg-gray-900 text-white px-12 py-4 rounded-2xl font-black hover:scale-105 transition transform shadow-xl flex items-center mx-auto group">
                         <span id="btn-text">PROCESAR CUADRATURA</span>
@@ -101,15 +93,32 @@
                     <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Alerta de Devolución</h2>
                     <p class="text-3xl font-black text-red-600"><span id="total-pending-count">0</span> Guías sin Escanear</p>
                 </div>
-                <i class="fas fa-clipboard-check text-5xl text-red-100"></i>
+                <button onclick="copyTableToClipboard()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold transition flex items-center shadow-lg">
+                    <i class="fas fa-copy mr-2"></i> Copiar para Sheets
+                </button>
             </div>
-            <div class="grid gap-3" id="pending-list"></div>
+
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="table-pending">
+                        <thead class="bg-gray-50 text-gray-500 text-[11px] uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 border-b">Viaje</th>
+                                <th class="px-6 py-4 border-b">Conductor</th>
+                                <th class="px-6 py-4 border-b">Guia</th>
+                                <th class="px-6 py-4 border-b">Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-list-body" class="text-sm divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
 
     </main>
 
     <script>
-        // CONFIGURACIÓN DE GOOGLE SHEETS
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN7sZtB7BFo25RS8Wt37S6J_0up-4YQunMv6cSlOndogunCZ8YK9prMqF5wBm1c1-v9JqrG3wzTOo/pub?output=csv';
 
         let dataViajes = [], dataParadas = [], dataGuiasEscaneadas = new Set();
@@ -121,7 +130,6 @@
             document.getElementById(`btn-${tab}`).classList.add('active-tab');
         }
 
-        // Cargar archivo local de Viajes
         document.getElementById('fileViajes').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
@@ -135,20 +143,14 @@
             reader.readAsBinaryString(file);
         });
 
-        // Función para descargar y procesar el CSV de Google Sheets
         async function fetchGoogleSheetsData() {
             try {
                 const response = await fetch(SHEET_URL + '&cachebust=' + new Date().getTime());
                 const text = await response.text();
-                
-                // Procesar CSV manualmente
                 const rows = text.split('\n').map(row => row.split(','));
                 const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
-                
                 const colIndex = headers.indexOf("Pedido Referencia externa");
-                if (colIndex === -1) {
-                    throw new Error('No se encontró la columna "Pedido Referencia externa"');
-                }
+                if (colIndex === -1) throw new Error('No se encontró la columna');
 
                 const guias = new Set();
                 for (let i = 1; i < rows.length; i++) {
@@ -157,44 +159,27 @@
                 }
                 return guias;
             } catch (error) {
-                console.error("Error al cargar Google Sheets:", error);
-                alert("Error al conectar con Google Sheets. Verifica que el archivo esté publicado correctamente.");
+                console.error("Error:", error);
                 return new Set();
             }
         }
 
         async function processData() {
             if (dataViajes.length === 0) return alert("Primero sube el archivo de Viajes.");
-            
             const btnText = document.getElementById('btn-text');
             const btnLoader = document.getElementById('btn-loader');
-            
-            // UI Loading
             btnText.innerText = "CARGANDO GOOGLE SHEETS...";
             btnLoader.classList.remove('hidden');
 
-            // Obtener Guías de Sheets
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
             
-            if (dataGuiasEscaneadas.size === 0) {
-                btnText.innerText = "PROCESAR CUADRATURA";
-                btnLoader.classList.add('hidden');
-                return;
-            }
-
             const dashboardBody = document.getElementById('dashboard-body');
             dashboardBody.innerHTML = '';
-            
-            let globalStats = { 
-                entregados: 0, finCarga: 0, noEmb: 0, noEnt: 0, noRec: 0, 
-                pendientes: 0, totalPedidos: 0, enRutaEntrega: 0 
-            };
-
+            let globalStats = { entregados: 0, finCarga: 0, noEmb: 0, noEnt: 0, noRec: 0, pendientes: 0, totalPedidos: 0, enRutaEntrega: 0 };
             let guiasPendientesArray = [];
 
             dataViajes.forEach(viaje => {
                 const paradas = dataParadas.filter(p => p.IdViaje == viaje.ID);
-                
                 const stats = {
                     entregado: paradas.filter(p => p.Estado === 'Entregado').length,
                     finCarga: paradas.filter(p => p.Estado === 'Fin de Carga').length,
@@ -210,16 +195,12 @@
                 globalStats.noEnt += stats.noEnt;
                 globalStats.noRec += stats.noRec;
                 globalStats.pendientes += stats.pendiente;
-                
-                const subtotalViaje = (stats.entregado + stats.finCarga + stats.noEmb + stats.noEnt + stats.noRec + stats.pendiente);
-                globalStats.totalPedidos += subtotalViaje;
-                if (viaje.Estado === 'En Ruta de Entrega') globalStats.enRutaEntrega += subtotalViaje;
+                globalStats.totalPedidos += (stats.entregado + stats.finCarga + stats.noEmb + stats.noEnt + stats.noRec + stats.pendiente);
 
                 let tieneGuiaFaltante = false;
                 paradas.forEach(p => {
                     const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
                     const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado'];
-
                     if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guia)) {
                         tieneGuiaFaltante = true;
                         guiasPendientesArray.push({ viaje: viaje.ID, conductor: viaje.Conductor, guia, estado: p.Estado });
@@ -229,7 +210,6 @@
                 const tr = document.createElement('tr');
                 if (viaje.Estado === 'Finalizado') tr.className = "row-finalizado";
                 if (tieneGuiaFaltante) tr.classList.add('row-pendiente-guia');
-
                 tr.innerHTML = `
                     <td class="px-6 py-4 font-bold text-gray-800">${viaje.ID}</td>
                     <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold ${viaje.Estado === 'Finalizado' ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}">${viaje.Estado}</span></td>
@@ -247,10 +227,59 @@
 
             renderDashboardWidgets(globalStats);
             renderPendingList(guiasPendientesArray);
-            
             btnText.innerText = "PROCESAR CUADRATURA";
             btnLoader.classList.add('hidden');
             showTab('dashboard');
+        }
+
+        // FUNCIONES DE RENDERIZADO PARA PENDIENTES
+        function renderPendingList(list) {
+            document.getElementById('total-pending-count').innerText = list.length;
+            const container = document.getElementById('pending-list-body');
+            
+            if (list.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400">Todo cuadrado. No hay guías pendientes.</td></tr>';
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-bold text-gray-700">${item.viaje}</td>
+                    <td class="px-6 py-4 text-gray-600 text-xs">${item.conductor}</td>
+                    <td class="px-6 py-4 font-black text-red-600">${item.guia}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-md bg-red-50 text-red-700 text-[10px] font-bold uppercase">${item.estado}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function copyTableToClipboard() {
+            const table = document.getElementById("table-pending");
+            let range, sel;
+            if (document.createRange && window.getSelection) {
+                range = document.createRange();
+                sel = window.getSelection();
+                sel.removeAllRanges();
+                try {
+                    range.selectNodeContents(table);
+                    sel.addRange(range);
+                } catch (e) {
+                    range.selectNode(table);
+                    sel.addRange(range);
+                }
+                document.execCommand("copy");
+                sel.removeAllRanges();
+                
+                const btn = event.currentTarget;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Copiado!';
+                btn.classList.replace('bg-red-600', 'bg-green-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.replace('bg-green-600', 'bg-red-600');
+                }, 2000);
+            }
         }
 
         function renderDashboardWidgets(s) {
@@ -271,21 +300,6 @@
                     <div class="text-xl font-black ${i.col}">${i.val}</div>
                 </div>
             `).join('');
-        }
-
-        function renderPendingList(list) {
-            document.getElementById('total-pending-count').innerText = list.length;
-            const container = document.getElementById('pending-list');
-            container.innerHTML = list.length > 0 ? list.map(item => `
-                <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-wrap items-center gap-6 shadow-sm">
-                    <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div><p class="text-[10px] text-gray-400 font-bold uppercase">ID Viaje</p><p class="font-bold">${item.viaje}</p></div>
-                        <div><p class="text-[10px] text-gray-400 font-bold uppercase">Guía</p><p class="font-black text-red-600">${item.guia}</p></div>
-                        <div><p class="text-[10px] text-gray-400 font-bold uppercase">Estatus</p><p class="text-xs font-medium">${item.estado}</p></div>
-                        <div><p class="text-[10px] text-gray-400 font-bold uppercase">Conductor</p><p class="text-xs">${item.conductor}</p></div>
-                    </div>
-                </div>
-            `).join('') : '<div class="text-center p-10 text-gray-400">Todo cuadrado. No hay guías pendientes.</div>';
         }
     </script>
 </body>
