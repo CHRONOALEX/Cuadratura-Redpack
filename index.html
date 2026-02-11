@@ -13,11 +13,7 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Lexend', 'sans-serif'] },
-                    colors: {
-                        carbon: '#121212',
-                        darkGray: '#1e1e1e',
-                        borderGray: '#2d2d2d'
-                    }
+                    colors: { carbon: '#121212', darkGray: '#1e1e1e', borderGray: '#2d2d2d' }
                 }
             }
         }
@@ -26,7 +22,6 @@
         body { background-color: #121212; color: #e5e7eb; }
         .active-tab { border-bottom: 3px solid #ef4444; color: #ef4444; }
         .row-finalizado { background-color: rgba(34, 197, 94, 0.05) !important; }
-        .row-pendiente-guia { border-left: 4px solid #f59e0b; background-color: rgba(245, 158, 11, 0.03) !important; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
@@ -39,7 +34,7 @@
     <header class="bg-darkGray sticky top-0 z-50 border-b border-borderGray">
         <div class="container mx-auto px-6 py-4 flex flex-wrap justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-red-600 p-2 rounded-lg shadow-lg shadow-red-900/20">
+                <div class="bg-red-600 p-2 rounded-lg shadow-lg">
                     <i class="fas fa-truck-fast text-white text-xl"></i>
                 </div>
                 <h1 class="text-xl font-extrabold tracking-tight">CUADRATURA <span class="text-red-600">REDPACK</span></h1>
@@ -53,9 +48,8 @@
     </header>
 
     <main class="container mx-auto px-6 py-8">
-
         <section id="section-dashboard">
-            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-8"></div>
+            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8"></div>
             <div class="bg-darkGray rounded-2xl shadow-xl overflow-hidden border border-borderGray">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -71,7 +65,7 @@
                             </tr>
                         </thead>
                         <tbody id="dashboard-body" class="text-sm divide-y divide-borderGray">
-                            <tr><td colspan="7" class="p-20 text-center text-gray-600">Paso 1: Sube el reporte para procesar.</td></tr>
+                            <tr><td colspan="7" class="p-20 text-center text-gray-600">Sube el reporte para procesar.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -81,7 +75,7 @@
         <section id="section-upload" class="hidden">
             <div class="max-w-2xl mx-auto">
                 <div class="bg-darkGray p-12 rounded-3xl shadow-2xl border border-borderGray text-center">
-                    <div class="w-20 h-20 bg-blue-900/20 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <div class="w-20 h-20 bg-red-900/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <i class="fas fa-file-excel text-3xl"></i>
                     </div>
                     <h2 class="text-2xl font-bold mb-2">Reporte de Viajes</h2>
@@ -102,12 +96,12 @@
 
         <section id="section-pending" class="hidden">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray">
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Sin Escanear</p>
                     <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
                 </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. TR2</p>
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-orange-500">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. / No Rec.</p>
                     <p class="text-2xl font-black text-orange-500" id="count-no-emb">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
@@ -129,8 +123,8 @@
                     <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
                             <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Resumen Choferes</h3>
-                            <button onclick="copyDriverSummary()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
-                                <i class="fas fa-copy mr-1.5"></i> Copiar
+                            <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
+                                <i class="fas fa-copy mr-1.5"></i> Copiar Sheets
                             </button>
                         </div>
                         <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[600px] overflow-y-auto">
@@ -143,7 +137,7 @@
                     <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
                             <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Listado Maestro de Faltantes</h3>
-                            <button onclick="copyTableToClipboard()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
+                            <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
                                 <i class="fas fa-copy mr-2"></i> Copiar Sheets
                             </button>
                         </div>
@@ -210,11 +204,13 @@
             document.getElementById('btn-loader').classList.remove('hidden');
 
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
-            
             const dashboardBody = document.getElementById('dashboard-body');
             dashboardBody.innerHTML = '';
             
-            let globalStats = { entregados: 0, finCarga: 0, noEmb: 0, noEnt: 0, noRec: 0, pendientes: 0, totalPedidos: 0, rutaPaquetes: 0, rutaChoferes: new Set() };
+            let globalStats = { 
+                entregados: 0, noEmb: 0, noEnt: 0, noRec: 0, 
+                rutaPaquetes: 0, rutaChoferes: new Set() 
+            };
             let guiasPendientesArray = [];
 
             dataViajes.forEach(viaje => {
@@ -224,25 +220,29 @@
                     finCarga: paradas.filter(p => p.Estado === 'Fin de Carga').length,
                     noEmb: paradas.filter(p => p.Estado === 'No Embarcado TR2').length,
                     noEnt: paradas.filter(p => p.Estado === 'No Entregado').length,
-                    pendiente: Math.max(0, paradas.filter(p => p.Estado === 'Pendiente').length - 2)
+                    noRec: paradas.filter(p => p.Estado === 'No Recibido CEDIS').length,
+                    pendiente: paradas.filter(p => p.Estado === 'Pendiente').length
                 };
 
-                // Lógica de "En Ruta"
-                if (viaje.Estado !== 'Finalizado') {
+                // CÁLCULO DE RUTA: Basado exclusivamente en paradas "Pendiente" de la hoja Paradas
+                if (stats.pendiente > 0) {
                     globalStats.rutaPaquetes += stats.pendiente;
-                    if (stats.pendiente > 0) globalStats.rutaChoferes.add(viaje.Conductor);
+                    globalStats.rutaChoferes.add(viaje.Conductor);
                 }
 
                 globalStats.entregados += stats.entregado;
                 globalStats.noEmb += stats.noEmb;
                 globalStats.noEnt += stats.noEnt;
-                globalStats.pendientes += stats.pendiente;
+                globalStats.noRec += stats.noRec;
 
                 paradas.forEach(p => {
                     const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
-                    const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado'];
+                    const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
                     if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guia)) {
-                        guiasPendientesArray.push({ viaje: viaje.ID, conductor: viaje.Conductor, guia, estado: p.Estado });
+                        guiasPendientesArray.push({ 
+                            viaje: viaje.ID, conductor: viaje.Conductor, 
+                            guia: guia, estado: p.Estado 
+                        });
                     }
                 });
 
@@ -266,14 +266,30 @@
             showTab('dashboard');
         }
 
+        function renderDashboardWidgets(s) {
+            const container = document.getElementById('stats-container');
+            const widgets = [
+                { label: 'Entregados', val: s.entregados, col: 'text-green-500' },
+                { label: 'No Emb. TR2', val: s.noEmb, col: 'text-orange-400' },
+                { label: 'No Entregado', val: s.noEnt, col: 'text-blue-500' },
+                { label: 'No Rec. CEDIS', val: s.noRec, col: 'text-yellow-500' },
+                { label: 'En Ruta', val: s.rutaPaquetes, col: 'text-red-500' }
+            ];
+            container.innerHTML = widgets.map(i => `
+                <div class="bg-darkGray p-5 rounded-2xl border border-borderGray flex flex-col items-center justify-center">
+                    <p class="text-[8px] font-black uppercase text-gray-500 mb-1">${i.label}</p>
+                    <div class="text-xl font-extrabold ${i.col}">${i.val}</div>
+                </div>
+            `).join('');
+        }
+
         function renderPendingList(list, global) {
             document.getElementById('total-pending-count').innerText = list.length;
-            document.getElementById('count-no-emb').innerText = list.filter(i => i.estado === 'No Embarcado TR2').length;
+            document.getElementById('count-no-emb').innerText = list.filter(i => i.estado === 'No Embarcado TR2' || i.estado === 'No Recibido CEDIS').length;
             document.getElementById('count-no-ent').innerText = list.filter(i => i.estado === 'No Entregado').length;
             document.getElementById('count-in-route').innerText = global.rutaPaquetes;
             document.getElementById('count-drivers-route').innerText = global.rutaChoferes.size;
 
-            // Mini Lista Izquierda (No Entregados por Chofer)
             const driverCounts = list.filter(i => i.estado === 'No Entregado').reduce((acc, curr) => {
                 acc[curr.conductor] = (acc[curr.conductor] || 0) + 1;
                 return acc;
@@ -286,57 +302,44 @@
                 ? sortedDrivers.map(([name, count]) => `
                     <div class="flex justify-between items-center p-4 hover:bg-white/5 transition driver-row">
                         <span class="text-xs font-medium text-gray-300 truncate mr-2 d-name">${name}</span>
-                        <span class="text-sm font-black text-blue-500 bg-blue-500/10 px-3 py-1 rounded-lg d-count">${count}</span>
+                        <span class="text-sm font-black text-red-500 bg-red-500/10 px-3 py-1 rounded-lg d-count">${count}</span>
                     </div>
                 `).join('')
-                : '<p class="p-6 text-center text-gray-600 text-xs">Sin "No Entregados"</p>';
+                : '<p class="p-6 text-center text-gray-600 text-xs">Sin pendientes</p>';
 
-            // Tabla Completa Derecha
             const container = document.getElementById('pending-list-body');
             container.innerHTML = list.map(item => `
-                <tr class="hover:bg-white/5 transition">
-                    <td class="px-6 py-4 font-bold text-gray-300">${item.viaje}</td>
-                    <td class="px-6 py-4 text-gray-400 text-xs">${item.conductor}</td>
-                    <td class="px-6 py-4 font-black text-red-500">${item.guia}</td>
-                    <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[9px] font-bold uppercase ${item.estado === 'No Entregado' ? 'bg-blue-900/30 text-blue-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
+                <tr class="hover:bg-white/5 transition master-row">
+                    <td class="px-6 py-4 font-bold text-gray-300 m-viaje">${item.viaje}</td>
+                    <td class="px-6 py-4 text-gray-400 text-xs m-conductor">${item.conductor}</td>
+                    <td class="px-6 py-4 font-black text-red-500 m-guia">${item.guia}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-[9px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">
+                            ${item.estado}
+                        </span>
+                    </td>
                 </tr>
             `).join('');
         }
 
         function copyDriverSummary() {
             const rows = document.querySelectorAll('.driver-row');
+            if (rows.length === 0) return alert("No hay datos");
             let text = "CHOFER\tTOTAL NO ENTREGADOS\n";
             rows.forEach(row => {
                 text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`;
             });
-            navigator.clipboard.writeText(text).then(() => alert("Resumen copiado"));
+            navigator.clipboard.writeText(text).then(() => alert("Resumen copiado para Sheets"));
         }
 
-        function copyTableToClipboard() {
-            const table = document.getElementById("table-pending");
-            let range = document.createRange();
-            let sel = window.getSelection();
-            sel.removeAllRanges();
-            range.selectNodeContents(table);
-            sel.addRange(range);
-            document.execCommand("copy");
-            alert("Tabla copiada");
-        }
-
-        function renderDashboardWidgets(s) {
-            const container = document.getElementById('stats-container');
-            const widgets = [
-                { label: 'Entregados', val: s.entregados, col: 'text-green-500' },
-                { label: 'No Emb. TR2', val: s.noEmb, col: 'text-orange-400' },
-                { label: 'No Entregado', val: s.noEnt, col: 'text-blue-500' },
-                { label: 'En Ruta', val: s.rutaPaquetes, col: 'text-red-500' }
-            ];
-            container.innerHTML = widgets.map(i => `
-                <div class="bg-darkGray p-5 rounded-2xl border border-borderGray flex flex-col items-center justify-center">
-                    <p class="text-[8px] font-black uppercase text-gray-500 mb-1">${i.label}</p>
-                    <div class="text-xl font-extrabold ${i.col}">${i.val}</div>
-                </div>
-            `).join('');
+        function copyTableToSheets() {
+            const rows = document.querySelectorAll('.master-row');
+            if (rows.length === 0) return alert("No hay datos");
+            let text = "VIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
+            rows.forEach(row => {
+                text += `${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`;
+            });
+            navigator.clipboard.writeText(text).then(() => alert("Listado copiado para Sheets"));
         }
     </script>
 </body>
