@@ -61,7 +61,7 @@
                                 <th class="px-6 py-4 border-b border-borderGray text-center">Entregados</th>
                                 <th class="px-6 py-4 border-b border-borderGray text-center">Fin Carga</th>
                                 <th class="px-6 py-4 border-b border-borderGray text-center">No Emb. TR2</th>
-                                <th class="px-6 py-4 border-b border-borderGray text-center text-red-500">Pendiente</th>
+                                <th class="px-6 py-4 border-b border-borderGray text-center text-red-500">En Ruta</th>
                             </tr>
                         </thead>
                         <tbody id="dashboard-body" class="text-sm divide-y divide-borderGray">
@@ -97,7 +97,7 @@
         <section id="section-pending" class="hidden">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Sin Escanear</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faltan por Escanear</p>
                     <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-orange-500">
@@ -105,11 +105,11 @@
                     <p class="text-2xl font-black text-orange-500" id="count-no-emb">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado (Faltante)</p>
                     <p class="text-2xl font-black text-blue-500" id="count-no-ent">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Pedidos en Ruta</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta</p>
                     <p class="text-2xl font-black text-green-500" id="count-in-route">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
@@ -122,9 +122,9 @@
                 <div class="lg:w-1/3">
                     <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Resumen Choferes</h3>
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Pendientes por Chofer</h3>
                             <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
-                                <i class="fas fa-copy mr-1.5"></i> Copiar Sheets
+                                <i class="fas fa-copy mr-1.5"></i> Copiar
                             </button>
                         </div>
                         <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[600px] overflow-y-auto">
@@ -136,9 +136,9 @@
                 <div class="lg:w-2/3">
                     <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Listado Maestro de Faltantes</h3>
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Listado Maestro (No en Sheets)</h3>
                             <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
-                                <i class="fas fa-copy mr-2"></i> Copiar Sheets
+                                <i class="fas fa-copy mr-2"></i> Copiar para Sheets
                             </button>
                         </div>
                         <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
@@ -169,6 +169,7 @@
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-tab', 'text-white'));
             document.getElementById(`section-${tab}`).classList.remove('hidden');
             document.getElementById(`btn-${tab}`).classList.add('active-tab');
+            if(tab !== 'dashboard') document.getElementById(`btn-${tab}`).classList.add('text-white');
         }
 
         document.getElementById('fileViajes').addEventListener('change', (e) => {
@@ -187,16 +188,24 @@
             try {
                 const response = await fetch(SHEET_URL + '&cachebust=' + new Date().getTime());
                 const text = await response.text();
-                const rows = text.split('\n').map(row => row.split(','));
+                // Split dinámico para manejar saltos de línea \r\n
+                const rows = text.split(/\r?\n/).map(row => row.split(','));
                 const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
                 const colIndex = headers.indexOf("Pedido Referencia externa");
+                
                 const guias = new Set();
                 for (let i = 1; i < rows.length; i++) {
-                    const val = rows[i][colIndex];
-                    if (val) guias.add(val.trim().replace(/"/g, ''));
+                    let val = rows[i][colIndex];
+                    if (val) {
+                        // Limpieza total: quitar comillas, quitar espacios extremos
+                        guias.add(val.replace(/"/g, '').trim());
+                    }
                 }
                 return guias;
-            } catch (error) { return new Set(); }
+            } catch (error) { 
+                console.error("Error al obtener guías de Sheets:", error);
+                return new Set(); 
+            }
         }
 
         async function processData() {
@@ -204,6 +213,7 @@
             document.getElementById('btn-loader').classList.remove('hidden');
 
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
+            
             const dashboardBody = document.getElementById('dashboard-body');
             dashboardBody.innerHTML = '';
             
@@ -224,24 +234,27 @@
                     pendiente: paradas.filter(p => p.Estado === 'Pendiente').length
                 };
 
-                // CÁLCULO DE RUTA: Basado exclusivamente en paradas "Pendiente" de la hoja Paradas
+                // Cálculo de globales para Widgets
                 if (stats.pendiente > 0) {
                     globalStats.rutaPaquetes += stats.pendiente;
                     globalStats.rutaChoferes.add(viaje.Conductor);
                 }
-
                 globalStats.entregados += stats.entregado;
                 globalStats.noEmb += stats.noEmb;
                 globalStats.noEnt += stats.noEnt;
                 globalStats.noRec += stats.noRec;
 
+                // FILTRADO DE GUIAS PENDIENTES
                 paradas.forEach(p => {
-                    const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
+                    const rawGuia = p["Pedido Referencia externa"] || "";
+                    const guiaExcel = String(rawGuia).split('|')[0].trim();
                     const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
-                    if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guia)) {
+                    
+                    // Solo incluimos en la lista de pendientes si NO está en Google Sheets
+                    if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guiaExcel)) {
                         guiasPendientesArray.push({ 
                             viaje: viaje.ID, conductor: viaje.Conductor, 
-                            guia: guia, estado: p.Estado 
+                            guia: guiaExcel, estado: p.Estado 
                         });
                     }
                 });
@@ -305,7 +318,7 @@
                         <span class="text-sm font-black text-red-500 bg-red-500/10 px-3 py-1 rounded-lg d-count">${count}</span>
                     </div>
                 `).join('')
-                : '<p class="p-6 text-center text-gray-600 text-xs">Sin pendientes</p>';
+                : '<p class="p-6 text-center text-gray-600 text-xs">¡Todo escaneado!</p>';
 
             const container = document.getElementById('pending-list-body');
             container.innerHTML = list.map(item => `
@@ -325,11 +338,11 @@
         function copyDriverSummary() {
             const rows = document.querySelectorAll('.driver-row');
             if (rows.length === 0) return alert("No hay datos");
-            let text = "CHOFER\tTOTAL NO ENTREGADOS\n";
+            let text = "CHOFER\tPENDIENTES\n";
             rows.forEach(row => {
                 text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`;
             });
-            navigator.clipboard.writeText(text).then(() => alert("Resumen copiado para Sheets"));
+            navigator.clipboard.writeText(text).then(() => alert("Resumen copiado"));
         }
 
         function copyTableToSheets() {
@@ -339,7 +352,7 @@
             rows.forEach(row => {
                 text += `${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`;
             });
-            navigator.clipboard.writeText(text).then(() => alert("Listado copiado para Sheets"));
+            navigator.clipboard.writeText(text).then(() => alert("Listado copiado"));
         }
     </script>
 </body>
