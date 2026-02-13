@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -95,7 +96,7 @@
         </section>
 
         <section id="section-pending" class="hidden">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faltan por Escanear</p>
                     <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
@@ -109,49 +110,61 @@
                     <p class="text-2xl font-black text-blue-500" id="count-no-ent">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta (-2)</p>
                     <p class="text-2xl font-black text-green-500" id="count-in-route">0</p>
                 </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes en Ruta</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes Activos</p>
                     <p class="text-2xl font-black text-purple-500" id="count-drivers-route">0</p>
                 </div>
             </div>
 
-            <div class="flex flex-col lg:flex-row gap-6">
-                <div class="lg:w-1/3">
-                    <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden">
-                        <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Pendientes por Chofer</h3>
-                            <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
-                                <i class="fas fa-copy mr-1.5"></i> Copiar
-                            </button>
-                        </div>
-                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[600px] overflow-y-auto">
-                            <p class="p-6 text-center text-gray-600 text-sm">Sin datos</p>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fas fa-search"></i></span>
+                    <input type="text" id="filter-conductor-pending" onkeyup="filterPending()" placeholder="Buscar Conductor..." class="w-full bg-darkGray border border-borderGray rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-red-600 transition">
+                </div>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fas fa-route"></i></span>
+                    <input type="text" id="filter-viaje-pending" onkeyup="filterPending()" placeholder="Buscar por ID Viaje..." class="w-full bg-darkGray border border-borderGray rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-red-600 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-1 bg-darkGray p-4 rounded-2xl border border-borderGray flex flex-col">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Top Pendientes</h3>
+                    <div class="h-[180px]">
+                        <canvas id="chart-pendientes"></canvas>
                     </div>
                 </div>
 
-                <div class="lg:w-2/3">
+                <div class="lg:col-span-1">
+                    <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden h-full">
+                        <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
+                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Por Chofer</h3>
+                            <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar</button>
+                        </div>
+                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
                     <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Listado Maestro (No en Sheets)</h3>
-                            <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
-                                <i class="fas fa-copy mr-2"></i> Copiar para Sheets
-                            </button>
+                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Listado Maestro</h3>
+                            <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-[9px] font-bold transition">Copiar Sheets</button>
                         </div>
-                        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                        <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
                             <table class="w-full text-left border-collapse" id="table-pending">
-                                <thead class="bg-carbon text-gray-500 text-[10px] uppercase tracking-wider sticky top-0">
+                                <thead class="bg-carbon text-gray-500 text-[9px] uppercase tracking-wider sticky top-0">
                                     <tr>
-                                        <th class="px-6 py-4 border-b border-borderGray">Viaje</th>
-                                        <th class="px-6 py-4 border-b border-borderGray">Conductor</th>
-                                        <th class="px-6 py-4 border-b border-borderGray">Guía</th>
-                                        <th class="px-6 py-4 border-b border-borderGray">Estatus</th>
+                                        <th class="px-6 py-3 border-b border-borderGray">Viaje</th>
+                                        <th class="px-6 py-3 border-b border-borderGray">Conductor</th>
+                                        <th class="px-6 py-3 border-b border-borderGray">Guía</th>
+                                        <th class="px-6 py-3 border-b border-borderGray">Estatus</th>
                                     </tr>
                                 </thead>
-                                <tbody id="pending-list-body" class="text-sm divide-y divide-borderGray"></tbody>
+                                <tbody id="pending-list-body" class="text-[11px] divide-y divide-borderGray"></tbody>
                             </table>
                         </div>
                     </div>
@@ -163,6 +176,7 @@
     <script>
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN7sZtB7BFo25RS8Wt37S6J_0up-4YQunMv6cSlOndogunCZ8YK9prMqF5wBm1c1-v9JqrG3wzTOo/pub?output=csv';
         let dataViajes = [], dataParadas = [], dataGuiasEscaneadas = new Set();
+        let chartInstance = null;
 
         function showTab(tab) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
@@ -170,6 +184,25 @@
             document.getElementById(`section-${tab}`).classList.remove('hidden');
             document.getElementById(`btn-${tab}`).classList.add('active-tab');
             if(tab !== 'dashboard') document.getElementById(`btn-${tab}`).classList.add('text-white');
+        }
+
+        // Función de filtrado para Guías Pendientes
+        function filterPending() {
+            const condSearch = document.getElementById('filter-conductor-pending').value.toLowerCase();
+            const routeSearch = document.getElementById('filter-viaje-pending').value.toLowerCase();
+            
+            // Filtrar Tabla Maestra
+            document.querySelectorAll('.master-row').forEach(row => {
+                const cText = row.getAttribute('data-conductor').toLowerCase();
+                const rText = row.getAttribute('data-viaje').toLowerCase();
+                row.style.display = (cText.includes(condSearch) && rText.includes(routeSearch)) ? '' : 'none';
+            });
+
+            // Filtrar Resumen Choferes
+            document.querySelectorAll('.driver-row').forEach(row => {
+                const cText = row.getAttribute('data-name').toLowerCase();
+                row.style.display = cText.includes(condSearch) ? '' : 'none';
+            });
         }
 
         document.getElementById('fileViajes').addEventListener('change', (e) => {
@@ -188,39 +221,27 @@
             try {
                 const response = await fetch(SHEET_URL + '&cachebust=' + new Date().getTime());
                 const text = await response.text();
-                // Split dinámico para manejar saltos de línea \r\n
                 const rows = text.split(/\r?\n/).map(row => row.split(','));
                 const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
                 const colIndex = headers.indexOf("Pedido Referencia externa");
-                
                 const guias = new Set();
                 for (let i = 1; i < rows.length; i++) {
                     let val = rows[i][colIndex];
-                    if (val) {
-                        // Limpieza total: quitar comillas, quitar espacios extremos
-                        guias.add(val.replace(/"/g, '').trim());
-                    }
+                    if (val) guias.add(val.replace(/"/g, '').trim());
                 }
                 return guias;
-            } catch (error) { 
-                console.error("Error al obtener guías de Sheets:", error);
-                return new Set(); 
-            }
+            } catch (error) { return new Set(); }
         }
 
         async function processData() {
             if (dataViajes.length === 0) return alert("Sube el archivo primero.");
             document.getElementById('btn-loader').classList.remove('hidden');
-
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
             
             const dashboardBody = document.getElementById('dashboard-body');
             dashboardBody.innerHTML = '';
             
-            let globalStats = { 
-                entregados: 0, noEmb: 0, noEnt: 0, noRec: 0, 
-                rutaPaquetes: 0, rutaChoferes: new Set() 
-            };
+            let globalStats = { entregados: 0, noEmb: 0, noEnt: 0, noRec: 0, rutaPaquetes: 0, rutaChoferes: new Set() };
             let guiasPendientesArray = [];
 
             dataViajes.forEach(viaje => {
@@ -234,42 +255,27 @@
                     pendiente: paradas.filter(p => p.Estado === 'Pendiente').length
                 };
 
-                // Cálculo de globales para Widgets
-                if (stats.pendiente > 0) {
-                    globalStats.rutaPaquetes += stats.pendiente;
-                    globalStats.rutaChoferes.add(viaje.Conductor);
-                }
+                // REGLA: Total en Ruta (-2 por ruta, min 0)
+                globalStats.rutaPaquetes += Math.max(0, stats.pendiente - 2);
+                // REGLA: Choferes en ruta (No finalizado)
+                if (viaje.Estado !== 'Finalizado') globalStats.rutaChoferes.add(viaje.Conductor);
+
                 globalStats.entregados += stats.entregado;
                 globalStats.noEmb += stats.noEmb;
                 globalStats.noEnt += stats.noEnt;
                 globalStats.noRec += stats.noRec;
 
-                // FILTRADO DE GUIAS PENDIENTES
                 paradas.forEach(p => {
-                    const rawGuia = p["Pedido Referencia externa"] || "";
-                    const guiaExcel = String(rawGuia).split('|')[0].trim();
+                    const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
                     const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
-                    
-                    // Solo incluimos en la lista de pendientes si NO está en Google Sheets
-                    if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guiaExcel)) {
-                        guiasPendientesArray.push({ 
-                            viaje: viaje.ID, conductor: viaje.Conductor, 
-                            guia: guiaExcel, estado: p.Estado 
-                        });
+                    if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guia)) {
+                        guiasPendientesArray.push({ viaje: viaje.ID, conductor: viaje.Conductor, guia: guia, estado: p.Estado });
                     }
                 });
 
                 const tr = document.createElement('tr');
                 if (viaje.Estado === 'Finalizado') tr.className = "row-finalizado";
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-bold text-white">${viaje.ID}</td>
-                    <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold ${viaje.Estado === 'Finalizado' ? 'bg-green-900/30 text-green-400' : 'bg-blue-900/30 text-blue-400'}">${viaje.Estado}</span></td>
-                    <td class="px-6 py-4 text-xs text-gray-300">${viaje.Conductor}</td>
-                    <td class="px-6 py-4 text-center font-bold text-green-500">${stats.entregado}</td>
-                    <td class="px-6 py-4 text-center text-gray-400">${stats.finCarga}</td>
-                    <td class="px-6 py-4 text-center text-gray-400">${stats.noEmb}</td>
-                    <td class="px-6 py-4 text-center font-black text-red-500">${stats.pendiente}</td>
-                `;
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-white">${viaje.ID}</td><td><span class="px-3 py-1 rounded-full text-[10px] font-bold ${viaje.Estado === 'Finalizado' ? 'bg-green-900/30 text-green-400' : 'bg-blue-900/30 text-blue-400'}">${viaje.Estado}</span></td><td class="px-6 py-4 text-xs text-gray-300">${viaje.Conductor}</td><td class="text-center font-bold text-green-500">${stats.entregado}</td><td class="text-center">${stats.finCarga}</td><td class="text-center">${stats.noEmb}</td><td class="text-center font-black text-red-500">${stats.pendiente}</td>`;
                 dashboardBody.appendChild(tr);
             });
 
@@ -286,19 +292,14 @@
                 { label: 'No Emb. TR2', val: s.noEmb, col: 'text-orange-400' },
                 { label: 'No Entregado', val: s.noEnt, col: 'text-blue-500' },
                 { label: 'No Rec. CEDIS', val: s.noRec, col: 'text-yellow-500' },
-                { label: 'En Ruta', val: s.rutaPaquetes, col: 'text-red-500' }
+                { label: 'En Ruta (-2)', val: s.rutaPaquetes, col: 'text-red-500' }
             ];
-            container.innerHTML = widgets.map(i => `
-                <div class="bg-darkGray p-5 rounded-2xl border border-borderGray flex flex-col items-center justify-center">
-                    <p class="text-[8px] font-black uppercase text-gray-500 mb-1">${i.label}</p>
-                    <div class="text-xl font-extrabold ${i.col}">${i.val}</div>
-                </div>
-            `).join('');
+            container.innerHTML = widgets.map(i => `<div class="bg-darkGray p-4 rounded-2xl border border-borderGray flex flex-col items-center"><p class="text-[7px] font-black uppercase text-gray-500 mb-1">${i.label}</p><div class="text-lg font-extrabold ${i.col}">${i.val}</div></div>`).join('');
         }
 
         function renderPendingList(list, global) {
             document.getElementById('total-pending-count').innerText = list.length;
-            document.getElementById('count-no-emb').innerText = list.filter(i => i.estado === 'No Embarcado TR2' || i.estado === 'No Recibido CEDIS').length;
+            document.getElementById('count-no-emb').innerText = list.filter(i => i.estado.includes('No Embarcado') || i.estado.includes('No Recibido')).length;
             document.getElementById('count-no-ent').innerText = list.filter(i => i.estado === 'No Entregado').length;
             document.getElementById('count-in-route').innerText = global.rutaPaquetes;
             document.getElementById('count-drivers-route').innerText = global.rutaChoferes.size;
@@ -308,51 +309,60 @@
                 return acc;
             }, {});
 
-            const driverContainer = document.getElementById('driver-summary-list');
             const sortedDrivers = Object.entries(driverCounts).sort((a, b) => b[1] - a[1]);
-            
-            driverContainer.innerHTML = sortedDrivers.length > 0 
-                ? sortedDrivers.map(([name, count]) => `
-                    <div class="flex justify-between items-center p-4 hover:bg-white/5 transition driver-row">
-                        <span class="text-xs font-medium text-gray-300 truncate mr-2 d-name">${name}</span>
-                        <span class="text-sm font-black text-red-500 bg-red-500/10 px-3 py-1 rounded-lg d-count">${count}</span>
-                    </div>
-                `).join('')
-                : '<p class="p-6 text-center text-gray-600 text-xs">¡Todo escaneado!</p>';
+            renderChart(sortedDrivers.slice(0, 5));
+
+            const driverContainer = document.getElementById('driver-summary-list');
+            driverContainer.innerHTML = sortedDrivers.map(([name, count]) => `
+                <div class="flex justify-between items-center p-3 hover:bg-white/5 driver-row" data-name="${name}">
+                    <span class="text-[10px] text-gray-300 truncate d-name">${name}</span>
+                    <span class="text-xs font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded d-count">${count}</span>
+                </div>
+            `).join('');
 
             const container = document.getElementById('pending-list-body');
             container.innerHTML = list.map(item => `
-                <tr class="hover:bg-white/5 transition master-row">
-                    <td class="px-6 py-4 font-bold text-gray-300 m-viaje">${item.viaje}</td>
-                    <td class="px-6 py-4 text-gray-400 text-xs m-conductor">${item.conductor}</td>
-                    <td class="px-6 py-4 font-black text-red-500 m-guia">${item.guia}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded text-[9px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">
-                            ${item.estado}
-                        </span>
-                    </td>
+                <tr class="hover:bg-white/5 master-row" data-conductor="${item.conductor}" data-viaje="${item.viaje}">
+                    <td class="px-6 py-3 font-bold text-gray-300 m-viaje">${item.viaje}</td>
+                    <td class="px-6 py-3 text-gray-400 m-conductor">${item.conductor}</td>
+                    <td class="px-6 py-3 font-black text-red-500 m-guia">${item.guia}</td>
+                    <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
                 </tr>
             `).join('');
         }
 
-        function copyDriverSummary() {
-            const rows = document.querySelectorAll('.driver-row');
-            if (rows.length === 0) return alert("No hay datos");
-            let text = "CHOFER\tPENDIENTES\n";
-            rows.forEach(row => {
-                text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`;
+        function renderChart(data) {
+            const ctx = document.getElementById('chart-pendientes').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(i => i[0].split(' ')[0]),
+                    datasets: [{ data: data.map(i => i[1]), backgroundColor: '#dc2626', borderRadius: 4 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#2d2d2d' }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+                        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } }
+                    }
+                }
             });
-            navigator.clipboard.writeText(text).then(() => alert("Resumen copiado"));
+        }
+
+        function copyDriverSummary() {
+            let text = "CHOFER\tPENDIENTES\n";
+            document.querySelectorAll('.driver-row').forEach(row => { if(row.style.display !== 'none') text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; });
+            navigator.clipboard.writeText(text).then(() => alert("Copiado"));
         }
 
         function copyTableToSheets() {
-            const rows = document.querySelectorAll('.master-row');
-            if (rows.length === 0) return alert("No hay datos");
             let text = "VIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
-            rows.forEach(row => {
-                text += `${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`;
-            });
-            navigator.clipboard.writeText(text).then(() => alert("Listado copiado"));
+            document.querySelectorAll('.master-row').forEach(row => { if(row.style.display !== 'none') text += `${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; });
+            navigator.clipboard.writeText(text).then(() => alert("Copiado"));
         }
     </script>
 </body>
