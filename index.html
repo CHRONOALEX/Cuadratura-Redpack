@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuadratura Redpack - Carbon Edition</title>
+    <title>Cuadratura Redpack - Pendientes</title>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -21,8 +21,6 @@
     </script>
     <style>
         body { background-color: #121212; color: #e5e7eb; }
-        .active-tab { border-bottom: 3px solid #ef4444; color: #ef4444; }
-        .row-finalizado { background-color: rgba(34, 197, 94, 0.05) !important; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
@@ -33,111 +31,104 @@
 <body class="font-sans antialiased">
 
     <header class="bg-darkGray sticky top-0 z-50 border-b border-borderGray">
-        <div class="container mx-auto px-6 py-4 flex flex-wrap justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-red-600 p-2 rounded-lg shadow-lg">
-                    <i class="fas fa-truck-fast text-white text-xl"></i>
+        <div class="container mx-auto px-6 py-3 flex flex-wrap justify-between items-center">
+            <div class="flex items-center space-x-6 flex-1">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-red-600 p-2 rounded-lg shadow-lg">
+                        <i class="fas fa-truck-fast text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-extrabold tracking-tight">CUADRATURA <span class="text-red-600">REDPACK</span></h1>
                 </div>
-                <h1 class="text-xl font-extrabold tracking-tight">CUADRATURA <span class="text-red-600">REDPACK</span></h1>
+                
+                <div class="h-8 w-[1px] bg-borderGray hidden md:block"></div>
+
+                <div class="relative flex-1 max-w-md hidden md:block">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-500 text-xs"></i>
+                    </div>
+                    <input type="text" id="smart-search" 
+                        class="bg-carbon border border-borderGray text-white text-xs rounded-lg focus:ring-red-600 focus:border-red-600 block w-full pl-10 p-2.5 outline-none transition" 
+                        placeholder="Buscar por Guía, Chofer, Viaje o Categoría..."
+                        oninput="smartFilter()">
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
+                    <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
+                        <i class="fas fa-file-excel mr-2"></i> SELECCIONAR
+                    </label>
+                    <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-red-700 transition flex items-center">
+                        <span>PROCESAR</span>
+                        <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-2"></i>
+                    </button>
+                </div>
             </div>
-            <nav class="flex space-x-6 mt-4 md:mt-0">
-                <button onclick="showTab('dashboard')" id="btn-dashboard" class="nav-link active-tab font-semibold py-2 transition text-sm">Dashboard</button>
-                <button onclick="showTab('upload')" id="btn-upload" class="nav-link font-semibold py-2 transition text-sm text-gray-500 hover:text-red-500">Subir Viajes</button>
-                <button onclick="showTab('pending')" id="btn-pending" class="nav-link font-semibold py-2 transition text-sm text-gray-500 hover:text-red-500">Guías Pendientes</button>
-            </nav>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-8">
-        <section id="section-dashboard">
-            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8"></div>
-            <div class="bg-darkGray rounded-2xl shadow-xl overflow-hidden border border-borderGray">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-carbon text-gray-400 text-[10px] uppercase tracking-widest font-bold">
-                            <tr>
-                                <th class="px-6 py-4 border-b border-borderGray">Viaje (ID)</th>
-                                <th class="px-6 py-4 border-b border-borderGray">Estado</th>
-                                <th class="px-6 py-4 border-b border-borderGray">Conductor</th>
-                                <th class="px-6 py-4 border-b border-borderGray text-center">Entregados</th>
-                                <th class="px-6 py-4 border-b border-borderGray text-center">Fin Carga</th>
-                                <th class="px-6 py-4 border-b border-borderGray text-center">No Emb. TR2</th>
-                                <th class="px-6 py-4 border-b border-borderGray text-center text-red-500">En Ruta</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashboard-body" class="text-sm divide-y divide-borderGray">
-                            <tr><td colspan="7" class="p-20 text-center text-gray-600">Sube el reporte para procesar.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="section-upload" class="hidden">
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-darkGray p-12 rounded-3xl shadow-2xl border border-borderGray text-center">
-                    <div class="w-20 h-20 bg-red-900/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-file-excel text-3xl"></i>
+        <section id="section-pending">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faltan por Escanear</p>
+                        <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
                     </div>
-                    <h2 class="text-2xl font-bold mb-2">Reporte de Viajes</h2>
-                    <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
-                    <label for="fileViajes" class="inline-block cursor-pointer bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-gray-200 transition shadow-lg transform hover:-translate-y-1">
-                        Seleccionar Archivo
-                    </label>
-                    <p id="statusViajes" class="mt-6 text-[10px] text-gray-500 uppercase tracking-widest font-bold">Esperando archivo...</p>
                 </div>
-                <div class="mt-10 text-center">
-                    <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-12 py-5 rounded-2xl font-black hover:bg-red-700 transition transform hover:scale-105 shadow-2xl flex items-center mx-auto">
-                        <span id="btn-text">PROCESAR CUADRATURA</span>
-                        <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-3"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
 
-        <section id="section-pending" class="hidden">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faltan por Escanear</p>
-                    <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
-                </div>
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-orange-500">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. / No Rec.</p>
-                    <p class="text-2xl font-black text-orange-500" id="count-no-emb">0</p>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. TR2</p>
+                    <p class="text-2xl font-black text-orange-500 mb-2" id="count-no-emb">0</p>
+                    <div class="flex gap-2 border-t border-borderGray pt-2">
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-emb-amz" class="text-white">0</span></div>
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-emb-same" class="text-white">0</span></div>
+                    </div>
                 </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado (Faltante)</p>
-                    <p class="text-2xl font-black text-blue-500" id="count-no-ent">0</p>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta (-2)</p>
-                    <p class="text-2xl font-black text-green-500" id="count-in-route">0</p>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes Activos</p>
-                    <p class="text-2xl font-black text-purple-500" id="count-drivers-route">0</p>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fas fa-search"></i></span>
-                    <input type="text" id="filter-conductor-pending" onkeyup="filterPending()" placeholder="Buscar Conductor..." class="w-full bg-darkGray border border-borderGray rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-red-600 transition">
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-yellow-500">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Recibido CEDIS</p>
+                    <p class="text-2xl font-black text-yellow-500 mb-2" id="count-no-rec">0</p>
+                    <div class="flex gap-2 border-t border-borderGray pt-2">
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-rec-amz" class="text-white">0</span></div>
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-rec-same" class="text-white">0</span></div>
+                    </div>
                 </div>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fas fa-route"></i></span>
-                    <input type="text" id="filter-viaje-pending" onkeyup="filterPending()" placeholder="Buscar por ID Viaje..." class="w-full bg-darkGray border border-borderGray rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-red-600 transition">
+
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado</p>
+                    <p class="text-2xl font-black text-blue-500 mb-2" id="count-no-ent">0</p>
+                    <div class="flex gap-2 border-t border-borderGray pt-2">
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-ent-amz" class="text-white">0</span></div>
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-ent-same" class="text-white">0</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta</p>
+                    <p class="text-2xl font-black text-green-500 mb-2" id="count-in-route">0</p>
+                    <div class="flex gap-2 border-t border-borderGray pt-2">
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-ruta-amz" class="text-white">0</span></div>
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-ruta-same" class="text-white">0</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes en Ruta</p>
+                    <p class="text-2xl font-black text-purple-500 mb-2" id="count-drivers-route">0</p>
+                    <div class="flex gap-2 border-t border-borderGray pt-2">
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-chofer-amz" class="text-white">0</span></div>
+                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-chofer-same" class="text-white">0</span></div>
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div class="lg:col-span-1 bg-darkGray p-4 rounded-2xl border border-borderGray flex flex-col">
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Top Pendientes</h3>
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Top No Entregados</h3>
                     <div class="h-[180px]">
                         <canvas id="chart-pendientes"></canvas>
                     </div>
                 </div>
-
                 <div class="lg:col-span-1">
                     <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden h-full">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
@@ -147,24 +138,26 @@
                         <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto"></div>
                     </div>
                 </div>
-
                 <div class="lg:col-span-2">
                     <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Listado Maestro</h3>
+                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Listado de Guías por Devolver</h3>
                             <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-[9px] font-bold transition">Copiar Sheets</button>
                         </div>
                         <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
                             <table class="w-full text-left border-collapse" id="table-pending">
                                 <thead class="bg-carbon text-gray-500 text-[9px] uppercase tracking-wider sticky top-0">
                                     <tr>
+                                        <th class="px-6 py-3 border-b border-borderGray">Categoría</th>
                                         <th class="px-6 py-3 border-b border-borderGray">Viaje</th>
                                         <th class="px-6 py-3 border-b border-borderGray">Conductor</th>
                                         <th class="px-6 py-3 border-b border-borderGray">Guía</th>
                                         <th class="px-6 py-3 border-b border-borderGray">Estatus</th>
                                     </tr>
                                 </thead>
-                                <tbody id="pending-list-body" class="text-[11px] divide-y divide-borderGray"></tbody>
+                                <tbody id="pending-list-body" class="text-[11px] divide-y divide-borderGray">
+                                    <tr><td colspan="5" class="p-20 text-center text-gray-600">Sube un archivo para comenzar.</td></tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -178,41 +171,23 @@
         let dataViajes = [], dataParadas = [], dataGuiasEscaneadas = new Set();
         let chartInstance = null;
 
-        function showTab(tab) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-tab', 'text-white'));
-            document.getElementById(`section-${tab}`).classList.remove('hidden');
-            document.getElementById(`btn-${tab}`).classList.add('active-tab');
-            if(tab !== 'dashboard') document.getElementById(`btn-${tab}`).classList.add('text-white');
-        }
-
-        // Función de filtrado para Guías Pendientes
-        function filterPending() {
-            const condSearch = document.getElementById('filter-conductor-pending').value.toLowerCase();
-            const routeSearch = document.getElementById('filter-viaje-pending').value.toLowerCase();
-            
-            // Filtrar Tabla Maestra
-            document.querySelectorAll('.master-row').forEach(row => {
-                const cText = row.getAttribute('data-conductor').toLowerCase();
-                const rText = row.getAttribute('data-viaje').toLowerCase();
-                row.style.display = (cText.includes(condSearch) && rText.includes(routeSearch)) ? '' : 'none';
-            });
-
-            // Filtrar Resumen Choferes
-            document.querySelectorAll('.driver-row').forEach(row => {
-                const cText = row.getAttribute('data-name').toLowerCase();
-                row.style.display = cText.includes(condSearch) ? '' : 'none';
-            });
-        }
-
         document.getElementById('fileViajes').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"] || wb.Sheets[Object.keys(wb.Sheets)[0]]);
-                dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"] || wb.Sheets[Object.keys(wb.Sheets)[1]]);
-                document.getElementById('statusViajes').innerText = "✓ " + file.name;
+                // Forzamos la lectura de las hojas correctas
+                dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]);
+                dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"]);
+                
+                const existingStatus = document.getElementById('statusViajes');
+                if(existingStatus) existingStatus.remove();
+                
+                const span = document.createElement('span');
+                span.id = "statusViajes";
+                span.className = "text-[9px] text-gray-500 uppercase font-bold hidden md:inline ml-2";
+                span.innerText = "✓ " + file.name;
+                document.getElementById('fileViajes').parentElement.appendChild(span);
             };
             reader.readAsBinaryString(file);
         });
@@ -234,76 +209,122 @@
         }
 
         async function processData() {
-            if (dataViajes.length === 0) return alert("Sube el archivo primero.");
+            if (!dataViajes.length || !dataParadas.length) return alert("Por favor, sube un archivo con las hojas 'Viajes' y 'Paradas'.");
             document.getElementById('btn-loader').classList.remove('hidden');
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
             
-            const dashboardBody = document.getElementById('dashboard-body');
-            dashboardBody.innerHTML = '';
-            
-            let globalStats = { entregados: 0, noEmb: 0, noEnt: 0, noRec: 0, rutaPaquetes: 0, rutaChoferes: new Set() };
+            let globalStats = { 
+                noEmb: { total: 0, amz: 0, same: 0 },
+                noRec: { total: 0, amz: 0, same: 0 },
+                noEnt: { total: 0, amz: 0, same: 0 },
+                ruta: { total: 0, amz: 0, same: 0 },
+                choferes: { total: new Set(), amz: new Set(), same: new Set() }
+            };
+
             let guiasPendientesArray = [];
+            const viajeConductorMap = {};
 
-            dataViajes.forEach(viaje => {
-                const paradas = dataParadas.filter(p => p.IdViaje == viaje.ID);
-                const stats = {
-                    entregado: paradas.filter(p => p.Estado === 'Entregado').length,
-                    finCarga: paradas.filter(p => p.Estado === 'Fin de Carga').length,
-                    noEmb: paradas.filter(p => p.Estado === 'No Embarcado TR2').length,
-                    noEnt: paradas.filter(p => p.Estado === 'No Entregado').length,
-                    noRec: paradas.filter(p => p.Estado === 'No Recibido CEDIS').length,
-                    pendiente: paradas.filter(p => p.Estado === 'Pendiente').length
-                };
+            // 1. PROCESAR HOJA VIAJES (Para los 21 choferes y categorías de viaje)
+            dataViajes.forEach(v => {
+                const conductor = v.Conductor ? String(v.Conductor).trim() : "";
+                const estadoViaje = v.Estado ? String(v.Estado).trim() : "";
+                const categoriaViaje = v.Categoría ? String(v.Categoría).trim() : "";
+                const idViaje = v.ID;
 
-                // REGLA: Total en Ruta (-2 por ruta, min 0)
-                globalStats.rutaPaquetes += Math.max(0, stats.pendiente - 2);
-                // REGLA: Choferes en ruta (No finalizado)
-                if (viaje.Estado !== 'Finalizado') globalStats.rutaChoferes.add(viaje.Conductor);
+                viajeConductorMap[idViaje] = conductor;
 
-                globalStats.entregados += stats.entregado;
-                globalStats.noEmb += stats.noEmb;
-                globalStats.noEnt += stats.noEnt;
-                globalStats.noRec += stats.noRec;
+                // Solo contamos si el estado es "En Ruta de Entrega" y no es COP MTY
+                if (estadoViaje === "En Ruta de Entrega" && conductor !== "COP MTY" && conductor !== "") {
+                    globalStats.choferes.total.add(conductor);
 
-                paradas.forEach(p => {
-                    const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
-                    const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
-                    if (estadosRetorno.includes(p.Estado) && !dataGuiasEscaneadas.has(guia)) {
-                        guiasPendientesArray.push({ viaje: viaje.ID, conductor: viaje.Conductor, guia: guia, estado: p.Estado });
+                    // Desglose por subcategoría basado en tus reglas:
+                    if (categoriaViaje === "Visible ASIGNADO") {
+                        globalStats.choferes.amz.add(conductor);
+                    } else if (categoriaViaje === "Amazon Same Day") {
+                        globalStats.choferes.same.add(conductor);
                     }
-                });
-
-                const tr = document.createElement('tr');
-                if (viaje.Estado === 'Finalizado') tr.className = "row-finalizado";
-                tr.innerHTML = `<td class="px-6 py-4 font-bold text-white">${viaje.ID}</td><td><span class="px-3 py-1 rounded-full text-[10px] font-bold ${viaje.Estado === 'Finalizado' ? 'bg-green-900/30 text-green-400' : 'bg-blue-900/30 text-blue-400'}">${viaje.Estado}</span></td><td class="px-6 py-4 text-xs text-gray-300">${viaje.Conductor}</td><td class="text-center font-bold text-green-500">${stats.entregado}</td><td class="text-center">${stats.finCarga}</td><td class="text-center">${stats.noEmb}</td><td class="text-center font-black text-red-500">${stats.pendiente}</td>`;
-                dashboardBody.appendChild(tr);
+                }
             });
 
-            renderDashboardWidgets(globalStats);
-            renderPendingList(guiasPendientesArray, globalStats);
+            // 2. PROCESAR HOJA PARADAS (Para las guías y estatus de paquetes)
+            dataParadas.forEach(p => {
+                const conductor = viajeConductorMap[p.IdViaje];
+                if (!conductor || conductor === "COP MTY") return;
+
+                const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
+                const estadoPaquete = String(p.Estado || "").trim();
+                const categoriaPaquete = String(p.Varchar5 || "").trim(); // Columna de categoría en Paradas
+                
+                const esAmz = categoriaPaquete === "Amazon";
+                const esSame = categoriaPaquete === "Amazon_SameDay";
+
+                if (estadoPaquete === 'No Embarcado TR2') {
+                    globalStats.noEmb.total++;
+                    if(esAmz) globalStats.noEmb.amz++;
+                    if(esSame) globalStats.noEmb.same++;
+                }
+                if (estadoPaquete === 'No Recibido CEDIS') {
+                    globalStats.noRec.total++;
+                    if(esAmz) globalStats.noRec.amz++;
+                    if(esSame) globalStats.noRec.same++;
+                }
+                if (estadoPaquete === 'No Entregado') {
+                    globalStats.noEnt.total++;
+                    if(esAmz) globalStats.noEnt.amz++;
+                    if(esSame) globalStats.noEnt.same++;
+                }
+                if (estadoPaquete === 'En Ruta de Entrega') {
+                    globalStats.ruta.total++;
+                    if(esAmz) globalStats.ruta.amz++;
+                    if(esSame) globalStats.ruta.same++;
+                }
+
+                // Lógica de visualización en tabla (pendientes por escanear)
+                const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
+                if (estadosRetorno.includes(estadoPaquete) && 
+                    !dataGuiasEscaneadas.has(guia) && 
+                    estadoPaquete !== 'No Recibido CEDIS') {
+                    
+                    guiasPendientesArray.push({ 
+                        categoria: categoriaPaquete,
+                        viaje: p.IdViaje, 
+                        conductor: conductor, 
+                        guia: guia, 
+                        estado: estadoPaquete 
+                    });
+                }
+            });
+
+            renderUI(guiasPendientesArray, globalStats);
             document.getElementById('btn-loader').classList.add('hidden');
-            showTab('dashboard');
         }
 
-        function renderDashboardWidgets(s) {
-            const container = document.getElementById('stats-container');
-            const widgets = [
-                { label: 'Entregados', val: s.entregados, col: 'text-green-500' },
-                { label: 'No Emb. TR2', val: s.noEmb, col: 'text-orange-400' },
-                { label: 'No Entregado', val: s.noEnt, col: 'text-blue-500' },
-                { label: 'No Rec. CEDIS', val: s.noRec, col: 'text-yellow-500' },
-                { label: 'En Ruta (-2)', val: s.rutaPaquetes, col: 'text-red-500' }
-            ];
-            container.innerHTML = widgets.map(i => `<div class="bg-darkGray p-4 rounded-2xl border border-borderGray flex flex-col items-center"><p class="text-[7px] font-black uppercase text-gray-500 mb-1">${i.label}</p><div class="text-lg font-extrabold ${i.col}">${i.val}</div></div>`).join('');
-        }
-
-        function renderPendingList(list, global) {
+        function renderUI(list, global) {
             document.getElementById('total-pending-count').innerText = list.length;
-            document.getElementById('count-no-emb').innerText = list.filter(i => i.estado.includes('No Embarcado') || i.estado.includes('No Recibido')).length;
-            document.getElementById('count-no-ent').innerText = list.filter(i => i.estado === 'No Entregado').length;
-            document.getElementById('count-in-route').innerText = global.rutaPaquetes;
-            document.getElementById('count-drivers-route').innerText = global.rutaChoferes.size;
+            
+            // Renderizado de tarjetas de conteo de paquetes
+            document.getElementById('count-no-emb').innerText = global.noEmb.total;
+            document.getElementById('sub-no-emb-amz').innerText = global.noEmb.amz;
+            document.getElementById('sub-no-emb-same').innerText = global.noEmb.same;
 
+            document.getElementById('count-no-rec').innerText = global.noRec.total;
+            document.getElementById('sub-no-rec-amz').innerText = global.noRec.amz;
+            document.getElementById('sub-no-rec-same').innerText = global.noRec.same;
+
+            document.getElementById('count-no-ent').innerText = global.noEnt.total;
+            document.getElementById('sub-no-ent-amz').innerText = global.noEnt.amz;
+            document.getElementById('sub-no-ent-same').innerText = global.noEnt.same;
+
+            document.getElementById('count-in-route').innerText = global.ruta.total;
+            document.getElementById('sub-ruta-amz').innerText = global.ruta.amz;
+            document.getElementById('sub-ruta-same').innerText = global.ruta.same;
+
+            // CORRECCIÓN FINAL: Conteo de Choferes únicos
+            document.getElementById('count-drivers-route').innerText = global.choferes.total.size;
+            document.getElementById('sub-chofer-amz').innerText = global.choferes.amz.size;
+            document.getElementById('sub-chofer-same').innerText = global.choferes.same.size;
+
+            // Gráfico y Lista por Chofer
             const driverCounts = list.filter(i => i.estado === 'No Entregado').reduce((acc, curr) => {
                 acc[curr.conductor] = (acc[curr.conductor] || 0) + 1;
                 return acc;
@@ -314,21 +335,34 @@
 
             const driverContainer = document.getElementById('driver-summary-list');
             driverContainer.innerHTML = sortedDrivers.map(([name, count]) => `
-                <div class="flex justify-between items-center p-3 hover:bg-white/5 driver-row" data-name="${name}">
+                <div class="flex justify-between items-center p-3 hover:bg-white/5">
                     <span class="text-[10px] text-gray-300 truncate d-name">${name}</span>
                     <span class="text-xs font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded d-count">${count}</span>
                 </div>
             `).join('');
 
+            // Tabla Principal
             const container = document.getElementById('pending-list-body');
-            container.innerHTML = list.map(item => `
-                <tr class="hover:bg-white/5 master-row" data-conductor="${item.conductor}" data-viaje="${item.viaje}">
-                    <td class="px-6 py-3 font-bold text-gray-300 m-viaje">${item.viaje}</td>
-                    <td class="px-6 py-3 text-gray-400 m-conductor">${item.conductor}</td>
-                    <td class="px-6 py-3 font-black text-red-500 m-guia">${item.guia}</td>
-                    <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
-                </tr>
-            `).join('');
+            if (list.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-gray-600">No hay datos pendientes para mostrar.</td></tr>';
+            } else {
+                container.innerHTML = list.map(item => `
+                    <tr class="hover:bg-white/5 master-row">
+                        <td class="px-6 py-3 text-gray-400 m-categoria font-medium italic">${item.categoria}</td>
+                        <td class="px-6 py-3 font-bold text-gray-300 m-viaje">${item.viaje}</td>
+                        <td class="px-6 py-3 text-gray-400 m-conductor">${item.conductor}</td>
+                        <td class="px-6 py-3 font-black text-red-500 m-guia">${item.guia}</td>
+                        <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function smartFilter() {
+            const query = document.getElementById('smart-search').value.toLowerCase();
+            document.querySelectorAll('.master-row').forEach(row => {
+                row.classList.toggle('hidden', !row.innerText.toLowerCase().includes(query));
+            });
         }
 
         function renderChart(data) {
@@ -354,15 +388,21 @@
         }
 
         function copyDriverSummary() {
-            let text = "CHOFER\tPENDIENTES\n";
-            document.querySelectorAll('.driver-row').forEach(row => { if(row.style.display !== 'none') text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; });
-            navigator.clipboard.writeText(text).then(() => alert("Copiado"));
+            let text = "CHOFER\tNO ENTREGADOS\n";
+            document.querySelectorAll('#driver-summary-list > div').forEach(row => { 
+                text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; 
+            });
+            navigator.clipboard.writeText(text).then(() => alert("Resumen de choferes copiado."));
         }
 
         function copyTableToSheets() {
-            let text = "VIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
-            document.querySelectorAll('.master-row').forEach(row => { if(row.style.display !== 'none') text += `${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; });
-            navigator.clipboard.writeText(text).then(() => alert("Copiado"));
+            let text = "CATEGORÍA\tVIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
+            document.querySelectorAll('.master-row').forEach(row => { 
+                if(!row.classList.contains('hidden')) {
+                    text += `${row.querySelector('.m-categoria').innerText}\t${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; 
+                }
+            });
+            navigator.clipboard.writeText(text).then(() => alert("Tabla copiada para Google Sheets."));
         }
     </script>
 </body>
