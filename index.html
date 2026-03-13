@@ -52,20 +52,37 @@
                         oninput="smartFilter()">
                 </div>
 
-                <div class="flex items-center space-x-3">
-                    <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
-                    <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
-                        <i class="fas fa-file-excel mr-2"></i> SELECCIONAR
-                    </label>
-                    <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-red-700 transition flex items-center">
-                        <span>PROCESAR</span>
-                        <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-2"></i>
-                    </button>
+                <div class="flex items-center space-x-4 ml-auto">
+                    <div class="flex items-center space-x-2">
+                        <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
+                        <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
+                            <i class="fas fa-file-excel mr-2"></i> SELECCIONAR
+                        </label>
+                        <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-red-700 transition flex items-center">
+                            <span>PROCESAR</span>
+                            <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-2"></i>
+                        </button>
+                    </div>
+
+                    <div id="info-display" class="hidden md:flex items-center space-x-2">
+                        <div class="bg-carbon border border-borderGray px-3 py-1.5 rounded-xl flex flex-col items-end leading-tight min-w-[100px]">
+                            <span class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Fecha</span>
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt text-red-600 text-[9px] mr-2"></i>
+                                <span id="display-fecha" class="text-xs font-black text-white">---</span>
+                            </div>
+                        </div>
+                        <div class="bg-carbon border border-borderGray px-3 py-1.5 rounded-xl flex flex-col items-end leading-tight min-w-[80px]">
+                            <span class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Total Guías</span>
+                            <div class="flex items-center">
+                                <i class="fas fa-box text-blue-500 text-[9px] mr-2"></i>
+                                <span id="display-total-guias" class="text-xs font-black text-white">0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="jornada-display" class="container mx-auto px-6 py-2 flex flex-wrap gap-2 border-t border-borderGray/50 empty:hidden">
-            </div>
     </header>
 
     <main class="container mx-auto px-6 py-8">
@@ -123,15 +140,14 @@
                 <div class="lg:col-span-1 bg-darkGray rounded-2xl border border-borderGray flex flex-col overflow-hidden">
                     <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
                         <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rendimiento por Chofer</h3>
-                        <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar Resumen</button>
+                        <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar</button>
                     </div>
                     <div class="p-4 flex flex-col gap-4">
                         <div class="h-[180px]">
                             <canvas id="chart-pendientes"></canvas>
                         </div>
                         <div class="h-[1px] bg-borderGray w-full"></div>
-                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto pr-2">
-                            </div>
+                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto pr-2"></div>
                     </div>
                 </div>
 
@@ -176,32 +192,23 @@
                 dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]);
                 dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"]);
                 
+                // Mostrar fecha e info base
+                const jornadaRaw = dataViajes[0]?.Jornada || "";
+                const dateMatch = jornadaRaw.match(/\d{2}\/\d{2}\/\d{4}/);
+                document.getElementById('display-fecha').innerText = dateMatch ? dateMatch[0] : "S/F";
+                document.getElementById('display-total-guias').innerText = dataParadas.length;
+                document.getElementById('info-display').classList.remove('hidden');
+
                 const existingStatus = document.getElementById('statusViajes');
                 if(existingStatus) existingStatus.remove();
-                
                 const span = document.createElement('span');
                 span.id = "statusViajes";
-                span.className = "text-[9px] text-gray-500 uppercase font-bold hidden md:inline ml-2";
+                span.className = "text-[9px] text-green-500 uppercase font-bold hidden lg:inline ml-2";
                 span.innerText = "✓ " + file.name;
                 document.getElementById('fileViajes').parentElement.appendChild(span);
-
-                // Actualizar mini display de Jornadas al cargar
-                updateJornadaDisplay(dataViajes);
             };
             reader.readAsBinaryString(file);
         });
-
-        function updateJornadaDisplay(data) {
-            const display = document.getElementById('jornada-display');
-            // Extraer jornadas únicas de la columna "Jornada" 
-            const jornadas = [...new Set(data.map(item => item.Jornada))].filter(j => j);
-            
-            display.innerHTML = jornadas.map(j => `
-                <span class="bg-carbon border border-borderGray text-[9px] px-2 py-1 rounded text-gray-400 font-bold uppercase flex items-center">
-                    <i class="fas fa-calendar-day mr-2 text-red-600"></i> ${j}
-                </span>
-            `).join('');
-        }
 
         async function fetchGoogleSheetsData() {
             try {
@@ -240,63 +247,32 @@
                 const estadoViaje = v.Estado ? String(v.Estado).trim() : "";
                 const categoriaViaje = v.Categoría ? String(v.Categoría).trim() : "";
                 const idViaje = v.ID;
-
                 viajeConductorMap[idViaje] = conductor;
 
                 if (estadoViaje === "En Ruta de Entrega" && conductor !== "COP MTY" && conductor !== "") {
                     globalStats.choferes.total.add(conductor);
-                    if (categoriaViaje === "Visible ASIGNADO") {
-                        globalStats.choferes.amz.add(conductor);
-                    } else if (categoriaViaje === "Amazon Same Day") {
-                        globalStats.choferes.same.add(conductor);
-                    }
+                    if (categoriaViaje === "Visible ASIGNADO") globalStats.choferes.amz.add(conductor);
+                    else if (categoriaViaje === "Amazon Same Day") globalStats.choferes.same.add(conductor);
                 }
             });
 
             dataParadas.forEach(p => {
                 const conductor = viajeConductorMap[p.IdViaje];
                 if (!conductor || conductor === "COP MTY") return;
-
                 const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
                 const estadoPaquete = String(p.Estado || "").trim();
                 const categoriaPaquete = String(p.Varchar5 || "").trim(); 
-                
                 const esAmz = categoriaPaquete === "Amazon";
                 const esSame = categoriaPaquete === "Amazon_SameDay";
 
-                if (estadoPaquete === 'No Embarcado TR2') {
-                    globalStats.noEmb.total++;
-                    if(esAmz) globalStats.noEmb.amz++;
-                    if(esSame) globalStats.noEmb.same++;
-                }
-                if (estadoPaquete === 'No Recibido CEDIS') {
-                    globalStats.noRec.total++;
-                    if(esAmz) globalStats.noRec.amz++;
-                    if(esSame) globalStats.noRec.same++;
-                }
-                if (estadoPaquete === 'No Entregado') {
-                    globalStats.noEnt.total++;
-                    if(esAmz) globalStats.noEnt.amz++;
-                    if(esSame) globalStats.noEnt.same++;
-                }
-                if (estadoPaquete === 'En Ruta de Entrega') {
-                    globalStats.ruta.total++;
-                    if(esAmz) globalStats.ruta.amz++;
-                    if(esSame) globalStats.ruta.same++;
-                }
+                if (estadoPaquete === 'No Embarcado TR2') { globalStats.noEmb.total++; if(esAmz) globalStats.noEmb.amz++; if(esSame) globalStats.noEmb.same++; }
+                if (estadoPaquete === 'No Recibido CEDIS') { globalStats.noRec.total++; if(esAmz) globalStats.noRec.amz++; if(esSame) globalStats.noRec.same++; }
+                if (estadoPaquete === 'No Entregado') { globalStats.noEnt.total++; if(esAmz) globalStats.noEnt.amz++; if(esSame) globalStats.noEnt.same++; }
+                if (estadoPaquete === 'En Ruta de Entrega') { globalStats.ruta.total++; if(esAmz) globalStats.ruta.amz++; if(esSame) globalStats.ruta.same++; }
 
                 const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
-                if (estadosRetorno.includes(estadoPaquete) && 
-                    !dataGuiasEscaneadas.has(guia) && 
-                    estadoPaquete !== 'No Recibido CEDIS') {
-                    
-                    guiasPendientesArray.push({ 
-                        categoria: categoriaPaquete,
-                        viaje: p.IdViaje, 
-                        conductor: conductor, 
-                        guia: guia, 
-                        estado: estadoPaquete 
-                    });
+                if (estadosRetorno.includes(estadoPaquete) && !dataGuiasEscaneadas.has(guia) && estadoPaquete !== 'No Recibido CEDIS') {
+                    guiasPendientesArray.push({ categoria: categoriaPaquete, viaje: p.IdViaje, conductor: conductor, guia: guia, estado: estadoPaquete });
                 }
             });
 
@@ -306,23 +282,18 @@
 
         function renderUI(list, global) {
             document.getElementById('total-pending-count').innerText = list.length;
-            
             document.getElementById('count-no-emb').innerText = global.noEmb.total;
             document.getElementById('sub-no-emb-amz').innerText = global.noEmb.amz;
             document.getElementById('sub-no-emb-same').innerText = global.noEmb.same;
-
             document.getElementById('count-no-rec').innerText = global.noRec.total;
             document.getElementById('sub-no-rec-amz').innerText = global.noRec.amz;
             document.getElementById('sub-no-rec-same').innerText = global.noRec.same;
-
             document.getElementById('count-no-ent').innerText = global.noEnt.total;
             document.getElementById('sub-no-ent-amz').innerText = global.noEnt.amz;
             document.getElementById('sub-no-ent-same').innerText = global.noEnt.same;
-
             document.getElementById('count-in-route').innerText = global.ruta.total;
             document.getElementById('sub-ruta-amz').innerText = global.ruta.amz;
             document.getElementById('sub-ruta-same').innerText = global.ruta.same;
-
             document.getElementById('count-drivers-route').innerText = global.choferes.total.size;
             document.getElementById('sub-chofer-amz').innerText = global.choferes.amz.size;
             document.getElementById('sub-chofer-same').innerText = global.choferes.same.size;
@@ -344,10 +315,8 @@
             `).join('');
 
             const container = document.getElementById('pending-list-body');
-            if (list.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-gray-600">No hay datos pendientes para mostrar.</td></tr>';
-            } else {
-                container.innerHTML = list.map(item => `
+            container.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="p-20 text-center text-gray-600">No hay datos.</td></tr>' : 
+                list.map(item => `
                     <tr class="hover:bg-white/5 master-row">
                         <td class="px-6 py-3 text-gray-400 m-categoria font-medium italic">${item.categoria}</td>
                         <td class="px-6 py-3 font-bold text-gray-300 m-viaje">${item.viaje}</td>
@@ -356,14 +325,11 @@
                         <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
                     </tr>
                 `).join('');
-            }
         }
 
         function smartFilter() {
             const query = document.getElementById('smart-search').value.toLowerCase();
-            document.querySelectorAll('.master-row').forEach(row => {
-                row.classList.toggle('hidden', !row.innerText.toLowerCase().includes(query));
-            });
+            document.querySelectorAll('.master-row').forEach(row => { row.classList.toggle('hidden', !row.innerText.toLowerCase().includes(query)); });
         }
 
         function renderChart(data) {
@@ -376,9 +342,7 @@
                     datasets: [{ data: data.map(i => i[1]), backgroundColor: '#dc2626', borderRadius: 4 }]
                 },
                 options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { beginAtZero: true, grid: { color: '#2d2d2d' }, ticks: { color: '#9ca3af', font: { size: 9 } } },
@@ -390,20 +354,16 @@
 
         function copyDriverSummary() {
             let text = "CHOFER\tNO ENTREGADOS\n";
-            document.querySelectorAll('#driver-summary-list > div').forEach(row => { 
-                text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; 
-            });
-            navigator.clipboard.writeText(text).then(() => alert("Resumen de choferes copiado."));
+            document.querySelectorAll('#driver-summary-list > div').forEach(row => { text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; });
+            navigator.clipboard.writeText(text).then(() => alert("Copiado."));
         }
 
         function copyTableToSheets() {
             let text = "CATEGORÍA\tVIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
             document.querySelectorAll('.master-row').forEach(row => { 
-                if(!row.classList.contains('hidden')) {
-                    text += `${row.querySelector('.m-categoria').innerText}\t${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; 
-                }
+                if(!row.classList.contains('hidden')) text += `${row.querySelector('.m-categoria').innerText}\t${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; 
             });
-            navigator.clipboard.writeText(text).then(() => alert("Tabla copiada para Google Sheets."));
+            navigator.clipboard.writeText(text).then(() => alert("Copiado para Sheets."));
         }
     </script>
 </body>
