@@ -64,6 +64,8 @@
                 </div>
             </div>
         </div>
+        <div id="jornada-display" class="container mx-auto px-6 py-2 flex flex-wrap gap-2 border-t border-borderGray/50 empty:hidden">
+            </div>
     </header>
 
     <main class="container mx-auto px-6 py-8">
@@ -75,7 +77,6 @@
                         <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
                     </div>
                 </div>
-
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-orange-500">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. TR2</p>
                     <p class="text-2xl font-black text-orange-500 mb-2" id="count-no-emb">0</p>
@@ -84,7 +85,6 @@
                         <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-emb-same" class="text-white">0</span></div>
                     </div>
                 </div>
-
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-yellow-500">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Recibido CEDIS</p>
                     <p class="text-2xl font-black text-yellow-500 mb-2" id="count-no-rec">0</p>
@@ -93,7 +93,6 @@
                         <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-rec-same" class="text-white">0</span></div>
                     </div>
                 </div>
-
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado</p>
                     <p class="text-2xl font-black text-blue-500 mb-2" id="count-no-ent">0</p>
@@ -102,7 +101,6 @@
                         <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-ent-same" class="text-white">0</span></div>
                     </div>
                 </div>
-
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta</p>
                     <p class="text-2xl font-black text-green-500 mb-2" id="count-in-route">0</p>
@@ -111,7 +109,6 @@
                         <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-ruta-same" class="text-white">0</span></div>
                     </div>
                 </div>
-
                 <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
                     <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes en Ruta</p>
                     <p class="text-2xl font-black text-purple-500 mb-2" id="count-drivers-route">0</p>
@@ -122,29 +119,29 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div class="lg:col-span-1 bg-darkGray p-4 rounded-2xl border border-borderGray flex flex-col">
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Top No Entregados</h3>
-                    <div class="h-[180px]">
-                        <canvas id="chart-pendientes"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 bg-darkGray rounded-2xl border border-borderGray flex flex-col overflow-hidden">
+                    <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
+                        <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rendimiento por Chofer</h3>
+                        <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar Resumen</button>
                     </div>
-                </div>
-                <div class="lg:col-span-1">
-                    <div class="bg-darkGray rounded-2xl border border-borderGray overflow-hidden h-full">
-                        <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Por Chofer</h3>
-                            <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar</button>
+                    <div class="p-4 flex flex-col gap-4">
+                        <div class="h-[180px]">
+                            <canvas id="chart-pendientes"></canvas>
                         </div>
-                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto"></div>
+                        <div class="h-[1px] bg-borderGray w-full"></div>
+                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto pr-2">
+                            </div>
                     </div>
                 </div>
+
                 <div class="lg:col-span-2">
-                    <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray">
+                    <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray h-full">
                         <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
                             <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Listado de Guías por Devolver</h3>
                             <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-[9px] font-bold transition">Copiar Sheets</button>
                         </div>
-                        <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
+                        <div class="overflow-x-auto max-h-[550px] overflow-y-auto">
                             <table class="w-full text-left border-collapse" id="table-pending">
                                 <thead class="bg-carbon text-gray-500 text-[9px] uppercase tracking-wider sticky top-0">
                                     <tr>
@@ -176,7 +173,6 @@
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                // Forzamos la lectura de las hojas correctas
                 dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]);
                 dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"]);
                 
@@ -188,9 +184,24 @@
                 span.className = "text-[9px] text-gray-500 uppercase font-bold hidden md:inline ml-2";
                 span.innerText = "✓ " + file.name;
                 document.getElementById('fileViajes').parentElement.appendChild(span);
+
+                // Actualizar mini display de Jornadas al cargar
+                updateJornadaDisplay(dataViajes);
             };
             reader.readAsBinaryString(file);
         });
+
+        function updateJornadaDisplay(data) {
+            const display = document.getElementById('jornada-display');
+            // Extraer jornadas únicas de la columna "Jornada" 
+            const jornadas = [...new Set(data.map(item => item.Jornada))].filter(j => j);
+            
+            display.innerHTML = jornadas.map(j => `
+                <span class="bg-carbon border border-borderGray text-[9px] px-2 py-1 rounded text-gray-400 font-bold uppercase flex items-center">
+                    <i class="fas fa-calendar-day mr-2 text-red-600"></i> ${j}
+                </span>
+            `).join('');
+        }
 
         async function fetchGoogleSheetsData() {
             try {
@@ -224,7 +235,6 @@
             let guiasPendientesArray = [];
             const viajeConductorMap = {};
 
-            // 1. PROCESAR HOJA VIAJES (Para los 21 choferes y categorías de viaje)
             dataViajes.forEach(v => {
                 const conductor = v.Conductor ? String(v.Conductor).trim() : "";
                 const estadoViaje = v.Estado ? String(v.Estado).trim() : "";
@@ -233,11 +243,8 @@
 
                 viajeConductorMap[idViaje] = conductor;
 
-                // Solo contamos si el estado es "En Ruta de Entrega" y no es COP MTY
                 if (estadoViaje === "En Ruta de Entrega" && conductor !== "COP MTY" && conductor !== "") {
                     globalStats.choferes.total.add(conductor);
-
-                    // Desglose por subcategoría basado en tus reglas:
                     if (categoriaViaje === "Visible ASIGNADO") {
                         globalStats.choferes.amz.add(conductor);
                     } else if (categoriaViaje === "Amazon Same Day") {
@@ -246,14 +253,13 @@
                 }
             });
 
-            // 2. PROCESAR HOJA PARADAS (Para las guías y estatus de paquetes)
             dataParadas.forEach(p => {
                 const conductor = viajeConductorMap[p.IdViaje];
                 if (!conductor || conductor === "COP MTY") return;
 
                 const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
                 const estadoPaquete = String(p.Estado || "").trim();
-                const categoriaPaquete = String(p.Varchar5 || "").trim(); // Columna de categoría en Paradas
+                const categoriaPaquete = String(p.Varchar5 || "").trim(); 
                 
                 const esAmz = categoriaPaquete === "Amazon";
                 const esSame = categoriaPaquete === "Amazon_SameDay";
@@ -279,7 +285,6 @@
                     if(esSame) globalStats.ruta.same++;
                 }
 
-                // Lógica de visualización en tabla (pendientes por escanear)
                 const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
                 if (estadosRetorno.includes(estadoPaquete) && 
                     !dataGuiasEscaneadas.has(guia) && 
@@ -302,7 +307,6 @@
         function renderUI(list, global) {
             document.getElementById('total-pending-count').innerText = list.length;
             
-            // Renderizado de tarjetas de conteo de paquetes
             document.getElementById('count-no-emb').innerText = global.noEmb.total;
             document.getElementById('sub-no-emb-amz').innerText = global.noEmb.amz;
             document.getElementById('sub-no-emb-same').innerText = global.noEmb.same;
@@ -319,12 +323,10 @@
             document.getElementById('sub-ruta-amz').innerText = global.ruta.amz;
             document.getElementById('sub-ruta-same').innerText = global.ruta.same;
 
-            // CORRECCIÓN FINAL: Conteo de Choferes únicos
             document.getElementById('count-drivers-route').innerText = global.choferes.total.size;
             document.getElementById('sub-chofer-amz').innerText = global.choferes.amz.size;
             document.getElementById('sub-chofer-same').innerText = global.choferes.same.size;
 
-            // Gráfico y Lista por Chofer
             const driverCounts = list.filter(i => i.estado === 'No Entregado').reduce((acc, curr) => {
                 acc[curr.conductor] = (acc[curr.conductor] || 0) + 1;
                 return acc;
@@ -335,13 +337,12 @@
 
             const driverContainer = document.getElementById('driver-summary-list');
             driverContainer.innerHTML = sortedDrivers.map(([name, count]) => `
-                <div class="flex justify-between items-center p-3 hover:bg-white/5">
-                    <span class="text-[10px] text-gray-300 truncate d-name">${name}</span>
-                    <span class="text-xs font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded d-count">${count}</span>
+                <div class="flex justify-between items-center p-2.5 hover:bg-white/5 rounded-lg transition">
+                    <span class="text-[10px] text-gray-300 truncate d-name font-medium uppercase">${name}</span>
+                    <span class="text-xs font-black text-red-500 bg-red-500/10 px-2.5 py-1 rounded d-count">${count}</span>
                 </div>
             `).join('');
 
-            // Tabla Principal
             const container = document.getElementById('pending-list-body');
             if (list.length === 0) {
                 container.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-gray-600">No hay datos pendientes para mostrar.</td></tr>';
