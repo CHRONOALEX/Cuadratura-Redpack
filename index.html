@@ -20,174 +20,132 @@
         }
     </script>
     <style>
-        body { background-color: #121212; color: #e5e7eb; }
-        ::-webkit-scrollbar { width: 8px; }
+        body { background-color: #121212; color: #e5e7eb; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .loading-spinner { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        th.sortable { cursor: pointer; transition: background 0.2s; }
-        th.sortable:hover { background-color: #2d2d2d; }
+        th.sortable { cursor: pointer; transition: all 0.2s; position: relative; }
+        th.sortable:hover { background-color: #2d2d2d; color: white; }
+        .card-stats { min-height: 90px; }
     </style>
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased text-xs">
 
-    <header class="bg-darkGray sticky top-0 z-50 border-b border-borderGray">
-        <div class="container mx-auto px-6 py-3 flex flex-wrap justify-between items-center">
-            <div class="flex items-center space-x-6 flex-1">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-red-600 p-2 rounded-lg shadow-lg">
-                        <i class="fas fa-truck-fast text-white text-xl"></i>
-                    </div>
-                    <h1 class="text-xl font-extrabold tracking-tight">CUADRATURA <span class="text-red-600">REDPACK</span></h1>
-                </div>
+    <header class="bg-darkGray sticky top-0 z-50 border-b border-borderGray shadow-xl">
+        <div class="container mx-auto px-4 py-2">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 
-                <div class="h-8 w-[1px] bg-borderGray hidden md:block"></div>
+                <div class="flex items-center justify-between lg:justify-start gap-4">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-red-600 p-1.5 rounded-lg shadow-lg">
+                            <i class="fas fa-truck-fast text-white text-lg"></i>
+                        </div>
+                        <h1 class="text-sm font-extrabold tracking-tight whitespace-nowrap">CUADRATURA <span class="text-red-600">REDPACK</span></h1>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
+                        <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
+                            <i class="fas fa-file-excel mr-1.5"></i> SUBIR
+                        </label>
+                        <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black hover:bg-red-700 transition flex items-center">
+                            <span>PROCESAR</span>
+                            <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-1.5"></i>
+                        </button>
+                    </div>
+                </div>
 
-                <div class="flex items-center space-x-3 flex-1 max-w-2xl hidden md:flex">
+                <div class="flex items-center gap-2 flex-1 max-w-full lg:max-w-xl">
                     <div class="relative flex-1">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-500 text-xs"></i>
+                            <i class="fas fa-search text-gray-500 text-[10px]"></i>
                         </div>
                         <input type="text" id="smart-search" 
-                            class="bg-carbon border border-borderGray text-white text-xs rounded-lg focus:ring-red-600 focus:border-red-600 block w-full pl-10 p-2.5 outline-none transition" 
-                            placeholder="Buscar por Guía, Chofer, Viaje..."
+                            class="bg-carbon border border-borderGray text-white text-[11px] rounded-lg focus:ring-red-600 focus:border-red-600 block w-full pl-8 p-2 outline-none transition" 
+                            placeholder="Guía, Chofer o Viaje..."
                             oninput="smartFilter()">
                     </div>
                     
-                    <div class="relative">
+                    <div class="relative w-28 lg:w-32">
                         <select id="filter-proveedor" onchange="smartFilter()" 
-                            class="bg-carbon border border-borderGray text-white text-xs rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 outline-none appearance-none pr-10 cursor-pointer font-bold">
+                            class="bg-carbon border border-borderGray text-white text-[11px] rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2 outline-none appearance-none pr-8 cursor-pointer font-bold">
                             <option value="ROMBO" selected>ROMBO</option>
                             <option value="QP">QP</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
-                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 text-[10px]">
+                            <i class="fas fa-chevron-down"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4 ml-auto">
-                    <div class="flex items-center space-x-2">
-                        <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
-                        <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center">
-                            <i class="fas fa-file-excel mr-2"></i> SELECCIONAR
-                        </label>
-                        <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-red-700 transition flex items-center">
-                            <span>PROCESAR</span>
-                            <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-2"></i>
-                        </button>
+                <div id="info-display" class="hidden lg:flex items-center gap-2">
+                    <div class="bg-carbon border border-borderGray px-2 py-1 rounded-lg flex flex-col items-end leading-none">
+                        <span class="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">Fecha</span>
+                        <span id="display-fecha" class="text-[10px] font-black text-white">---</span>
                     </div>
-
-                    <div id="info-display" class="hidden md:flex items-center space-x-2">
-                        <div class="bg-carbon border border-borderGray px-3 py-1.5 rounded-xl flex flex-col items-end leading-tight min-w-[100px]">
-                            <span class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Fecha</span>
-                            <div class="flex items-center">
-                                <i class="fas fa-calendar-alt text-red-600 text-[9px] mr-2"></i>
-                                <span id="display-fecha" class="text-xs font-black text-white">---</span>
-                            </div>
-                        </div>
-                        <div class="bg-carbon border border-borderGray px-3 py-1.5 rounded-xl flex flex-col items-end leading-tight min-w-[80px]">
-                            <span class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Total Guías</span>
-                            <div class="flex items-center">
-                                <i class="fas fa-box text-blue-500 text-[9px] mr-2"></i>
-                                <span id="display-total-guias" class="text-xs font-black text-white">0</span>
-                            </div>
-                        </div>
+                    <div class="bg-carbon border border-borderGray px-2 py-1 rounded-lg flex flex-col items-end leading-none">
+                        <span class="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">Total Guías</span>
+                        <span id="display-total-guias" class="text-[10px] font-black text-white">0</span>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-6 py-8">
+    <main class="container mx-auto px-4 py-4">
         <section id="section-pending">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-red-600 flex flex-col justify-between">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-red-600 flex flex-col justify-between">
                     <div>
-                        <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faltan por Escanear</p>
-                        <p class="text-2xl font-black text-red-600" id="total-pending-count">0</p>
+                        <p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">Faltan Escanear</p>
+                        <p class="text-xl font-black text-red-600" id="total-pending-count">0</p>
+                    </div>
+                    <div class="flex flex-col border-t border-borderGray/50 mt-1 pt-1">
+                        <div class="text-[7px] text-gray-500 flex justify-between">EMB: <span id="sub-pending-no-emb" class="text-white font-bold">0</span></div>
+                        <div class="text-[7px] text-gray-500 flex justify-between">ENT: <span id="sub-pending-no-ent" class="text-white font-bold">0</span></div>
                     </div>
                 </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-orange-500">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Emb. TR2</p>
-                    <p class="text-2xl font-black text-orange-500 mb-2" id="count-no-emb">0</p>
-                    <div class="flex gap-2 border-t border-borderGray pt-2">
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-emb-amz" class="text-white">0</span></div>
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-emb-same" class="text-white">0</span></div>
-                    </div>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-yellow-500">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Recibido CEDIS</p>
-                    <p class="text-2xl font-black text-yellow-500 mb-2" id="count-no-rec">0</p>
-                    <div class="flex gap-2 border-t border-borderGray pt-2">
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-rec-amz" class="text-white">0</span></div>
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-rec-same" class="text-white">0</span></div>
-                    </div>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-blue-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">No Entregado</p>
-                    <p class="text-2xl font-black text-blue-500 mb-2" id="count-no-ent">0</p>
-                    <div class="flex gap-2 border-t border-borderGray pt-2">
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-no-ent-amz" class="text-white">0</span></div>
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-no-ent-same" class="text-white">0</span></div>
-                    </div>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-green-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total en Ruta</p>
-                    <p class="text-2xl font-black text-green-500 mb-2" id="count-in-route">0</p>
-                    <div class="flex gap-2 border-t border-borderGray pt-2">
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-ruta-amz" class="text-white">0</span></div>
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-ruta-same" class="text-white">0</span></div>
-                    </div>
-                </div>
-                <div class="bg-darkGray p-4 rounded-2xl border border-borderGray border-l-4 border-l-purple-600">
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Choferes en Ruta</p>
-                    <p class="text-2xl font-black text-purple-500 mb-2" id="count-drivers-route">0</p>
-                    <div class="flex gap-2 border-t border-borderGray pt-2">
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">AMZ: <span id="sub-chofer-amz" class="text-white">0</span></div>
-                        <div class="flex-1 text-[8px] text-gray-500 font-bold uppercase">SAME: <span id="sub-chofer-same" class="text-white">0</span></div>
-                    </div>
-                </div>
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-orange-500"><p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">No Emb. TR2</p><p class="text-xl font-black text-orange-500" id="count-no-emb">0</p><div class="flex gap-2 border-t border-borderGray/50 mt-1 pt-1"><div class="flex-1 text-[7px] text-gray-500">A: <span id="sub-no-emb-amz" class="text-white">0</span></div><div class="flex-1 text-[7px] text-gray-500">S: <span id="sub-no-emb-same" class="text-white">0</span></div></div></div>
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-yellow-500 text-yellow-500"><p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">No Recibido</p><p class="text-xl font-black" id="count-no-rec">0</p><div class="flex gap-2 border-t border-borderGray/50 mt-1 pt-1"><div class="flex-1 text-[7px] text-gray-500">A: <span id="sub-no-rec-amz" class="text-white">0</span></div><div class="flex-1 text-[7px] text-gray-500">S: <span id="sub-no-rec-same" class="text-white">0</span></div></div></div>
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-blue-600"><p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">No Entregado</p><p class="text-xl font-black text-blue-500" id="count-no-ent">0</p><div class="flex gap-2 border-t border-borderGray/50 mt-1 pt-1"><div class="flex-1 text-[7px] text-gray-500">A: <span id="sub-no-ent-amz" class="text-white">0</span></div><div class="flex-1 text-[7px] text-gray-500">S: <span id="sub-no-ent-same" class="text-white">0</span></div></div></div>
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-green-600"><p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">Total en Ruta</p><p class="text-xl font-black text-green-500" id="count-in-route">0</p><div class="flex gap-2 border-t border-borderGray/50 mt-1 pt-1"><div class="flex-1 text-[7px] text-gray-500">A: <span id="sub-ruta-amz" class="text-white">0</span></div><div class="flex-1 text-[7px] text-gray-500">S: <span id="sub-ruta-same" class="text-white">0</span></div></div></div>
+                <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-purple-600"><p class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">Choferes Ruta</p><p class="text-xl font-black text-purple-500" id="count-drivers-route">0</p><div class="flex gap-2 border-t border-borderGray/50 mt-1 pt-1"><div class="flex-1 text-[7px] text-gray-500">A: <span id="sub-chofer-amz" class="text-white">0</span></div><div class="flex-1 text-[7px] text-gray-500">S: <span id="sub-chofer-same" class="text-white">0</span></div></div></div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-1 bg-darkGray rounded-2xl border border-borderGray flex flex-col overflow-hidden">
-                    <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                        <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rendimiento por Chofer</h3>
-                        <button onclick="copyDriverSummary()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[9px] font-bold transition">Copiar</button>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div class="lg:col-span-1 bg-darkGray rounded-xl border border-borderGray flex flex-col h-fit">
+                    <div class="p-3 bg-carbon border-b border-borderGray flex justify-between items-center">
+                        <h3 class="text-[9px] font-bold uppercase text-gray-400">Rendimiento</h3>
+                        <button onclick="copyDriverSummary()" class="text-red-500 text-[10px] font-bold hover:underline">COPIAR</button>
                     </div>
-                    <div class="p-4 flex flex-col gap-4">
-                        <div class="h-[180px]">
-                            <canvas id="chart-pendientes"></canvas>
-                        </div>
-                        <div class="h-[1px] bg-borderGray w-full"></div>
-                        <div id="driver-summary-list" class="divide-y divide-borderGray max-h-[300px] overflow-y-auto pr-2"></div>
+                    <div class="p-3">
+                        <div class="h-[120px] mb-3"><canvas id="chart-pendientes"></canvas></div>
+                        <div id="driver-summary-list" class="divide-y divide-borderGray/50 max-h-[250px] overflow-y-auto"></div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-2">
-                    <div class="bg-darkGray rounded-2xl shadow-sm overflow-hidden border border-borderGray h-full">
-                        <div class="p-4 bg-carbon border-b border-borderGray flex justify-between items-center">
-                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Listado de Guías por Devolver</h3>
-                            <button onclick="copyTableToSheets()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-[9px] font-bold transition">Copiar Sheets</button>
-                        </div>
-                        <div class="overflow-x-auto max-h-[550px] overflow-y-auto">
-                            <table class="w-full text-left border-collapse" id="table-pending">
-                                <thead class="bg-carbon text-gray-500 text-[9px] uppercase tracking-wider sticky top-0">
-                                    <tr>
-                                        <th class="px-6 py-3 border-b border-borderGray sortable" onclick="sortTable(0)">Categoría <i class="fas fa-sort ml-1 opacity-30"></i></th>
-                                        <th class="px-6 py-3 border-b border-borderGray sortable" onclick="sortTable(1)">Viaje <i class="fas fa-sort ml-1 opacity-30"></i></th>
-                                        <th class="px-6 py-3 border-b border-borderGray sortable" onclick="sortTable(2)">Conductor <i class="fas fa-sort ml-1 opacity-30"></i></th>
-                                        <th class="px-6 py-3 border-b border-borderGray sortable" onclick="sortTable(3)">Guía <i class="fas fa-sort ml-1 opacity-30"></i></th>
-                                        <th class="px-6 py-3 border-b border-borderGray sortable" onclick="sortTable(4)">Estatus <i class="fas fa-sort ml-1 opacity-30"></i></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pending-list-body" class="text-[11px] divide-y divide-borderGray">
-                                    <tr><td colspan="5" class="p-20 text-center text-gray-600">Sube un archivo para comenzar.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="lg:col-span-3 bg-darkGray rounded-xl border border-borderGray flex flex-col">
+                    <div class="p-3 bg-carbon border-b border-borderGray flex justify-between items-center">
+                        <h3 class="text-[9px] font-bold uppercase text-gray-400">Listado de Pendientes</h3>
+                        <button onclick="copyTableToSheets()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">COPIAR SHEETS</button>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="w-full text-left border-collapse min-w-[600px]" id="table-pending">
+                            <thead class="bg-carbon text-gray-500 text-[8px] uppercase sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="px-4 py-2 border-b border-borderGray sortable" onclick="sortTable(0)">Cat <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="px-4 py-2 border-b border-borderGray sortable" onclick="sortTable(1)">Viaje <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="px-4 py-2 border-b border-borderGray sortable" onclick="sortTable(2)">Conductor <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="px-4 py-2 border-b border-borderGray sortable" onclick="sortTable(3)">Guía <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                    <th class="px-4 py-2 border-b border-borderGray sortable" onclick="sortTable(4)">Estado <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-list-body" class="text-[10px] divide-y divide-borderGray/50">
+                                <tr><td colspan="5" class="p-10 text-center text-gray-600">Sube un archivo.</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -208,19 +166,10 @@
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
                 dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]);
                 dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"]);
-                
                 const jornadaRaw = dataViajes[0]?.Jornada || "";
                 const dateMatch = jornadaRaw.match(/\d{2}\/\d{2}\/\d{4}/);
                 document.getElementById('display-fecha').innerText = dateMatch ? dateMatch[0] : "S/F";
                 document.getElementById('info-display').classList.remove('hidden');
-
-                const existingStatus = document.getElementById('statusViajes');
-                if(existingStatus) existingStatus.remove();
-                const span = document.createElement('span');
-                span.id = "statusViajes";
-                span.className = "text-[9px] text-green-500 uppercase font-bold hidden lg:inline ml-2";
-                span.innerText = "✓ " + file.name;
-                document.getElementById('fileViajes').parentElement.appendChild(span);
             };
             reader.readAsBinaryString(file);
         });
@@ -242,39 +191,31 @@
         }
 
         async function processData() {
-            if (!dataViajes.length || !dataParadas.length) return alert("Por favor, sube un archivo con las hojas 'Viajes' y 'Paradas'.");
+            if (!dataViajes.length) return alert("Sube el archivo primero.");
             document.getElementById('btn-loader').classList.remove('hidden');
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
-            
             rawProcessedStats = []; 
             const viajeConductorMap = {};
 
             dataViajes.forEach(v => {
-                const idViaje = v.ID;
-                const conductor = v.Conductor ? String(v.Conductor).trim() : "";
-                const estadoViaje = v.Estado ? String(v.Estado).trim() : "";
-                const categoriaViaje = v.Categoría ? String(v.Categoría).trim() : "";
-                viajeConductorMap[idViaje] = { conductor, estadoViaje, categoriaViaje };
+                viajeConductorMap[v.ID] = { 
+                    conductor: v.Conductor ? String(v.Conductor).trim() : "", 
+                    estadoViaje: v.Estado ? String(v.Estado).trim() : "", 
+                    categoriaViaje: v.Categoría ? String(v.Categoría).trim() : "" 
+                };
             });
 
             dataParadas.forEach(p => {
                 const infoViaje = viajeConductorMap[p.IdViaje];
                 if (!infoViaje || infoViaje.conductor === "COP MTY") return;
-
                 const guia = String(p["Pedido Referencia externa"] || "").split('|')[0].trim();
                 const estadoPaquete = String(p.Estado || "").trim();
-                const categoriaPaquete = String(p.Varchar5 || "").trim(); 
                 const proveedor = (infoViaje.conductor === "CONDUCTOR QP CONDUCTOR QP") ? "QP" : "ROMBO";
 
                 rawProcessedStats.push({
-                    proveedor,
-                    conductor: infoViaje.conductor,
-                    categoria: categoriaPaquete,
-                    estado: estadoPaquete,
-                    guia: guia,
-                    viaje: p.IdViaje,
-                    estadoViaje: infoViaje.estadoViaje,
-                    categoriaViaje: infoViaje.categoriaViaje
+                    proveedor, ...infoViaje, 
+                    categoria: String(p.Varchar5 || "").trim(),
+                    estado: estadoPaquete, guia, viaje: p.IdViaje
                 });
             });
 
@@ -285,133 +226,86 @@
         function renderUI() {
             const query = document.getElementById('smart-search').value.toLowerCase();
             const provSel = document.getElementById('filter-proveedor').value;
-
             let stats = {
-                noEmb: { total: 0, amz: 0, same: 0 },
-                noRec: { total: 0, amz: 0, same: 0 },
-                noEnt: { total: 0, amz: 0, same: 0 },
-                ruta: { total: 0, amz: 0, same: 0 },
-                choferes: { total: new Set(), amz: new Set(), same: new Set() },
-                totalGuias: 0
+                noEmb: { t: 0, a: 0, s: 0 }, noRec: { t: 0, a: 0, s: 0 },
+                noEnt: { t: 0, a: 0, s: 0 }, ruta: { t: 0, a: 0, s: 0 },
+                choferes: { t: new Set(), a: new Set(), s: new Set() },
+                totalGuias: 0, pendNoEmb: 0, pendNoEnt: 0
             };
-
             let tableHtml = "";
             let pendientesCount = 0;
             const driverNoEntregados = {};
 
             rawProcessedStats.forEach(item => {
                 if (item.proveedor !== provSel) return;
-
                 stats.totalGuias++;
                 const esAmz = item.categoria === "Amazon";
                 const esSame = item.categoria === "Amazon_SameDay";
 
-                // Stats Globales
-                if (item.estado === 'No Embarcado TR2') { stats.noEmb.total++; if(esAmz) stats.noEmb.amz++; if(esSame) stats.noEmb.same++; }
-                if (item.estado === 'No Recibido CEDIS') { stats.noRec.total++; if(esAmz) stats.noRec.amz++; if(esSame) stats.noRec.same++; }
-                if (item.estado === 'No Entregado') { stats.noEnt.total++; if(esAmz) stats.noEnt.amz++; if(esSame) stats.noEnt.same++; }
-                if (item.estado === 'En Ruta de Entrega') { stats.ruta.total++; if(esAmz) stats.ruta.amz++; if(esSame) stats.ruta.same++; }
+                if (item.estado === 'No Embarcado TR2') { stats.noEmb.t++; if(esAmz) stats.noEmb.a++; if(esSame) stats.noEmb.s++; }
+                if (item.estado === 'No Recibido CEDIS') { stats.noRec.t++; if(esAmz) stats.noRec.a++; if(esSame) stats.noRec.s++; }
+                if (item.estado === 'No Entregado') { stats.noEnt.t++; if(esAmz) stats.noEnt.a++; if(esSame) stats.noEnt.s++; }
+                if (item.estado === 'En Ruta de Entrega') { stats.ruta.t++; if(esAmz) stats.ruta.a++; if(esSame) stats.ruta.s++; }
 
-                // Choferes en Ruta (basado en el estado del viaje)
-                if (item.estadoViaje === "En Ruta de Entrega" && item.conductor !== "") {
-                    stats.choferes.total.add(item.conductor);
-                    if (item.categoriaViaje === "Visible ASIGNADO") stats.choferes.amz.add(item.conductor);
-                    else if (item.categoriaViaje === "Amazon Same Day") stats.choferes.same.add(item.conductor);
+                if (item.estadoViaje === "En Ruta de Entrega") {
+                    stats.choferes.t.add(item.conductor);
+                    if (item.categoriaViaje === "Visible ASIGNADO") stats.choferes.a.add(item.conductor);
+                    else if (item.categoriaViaje === "Amazon Same Day") stats.choferes.s.add(item.conductor);
                 }
 
-                // Lógica de Tabla (Faltan por Escanear)
                 const estadosRetorno = ['Fin de Carga', 'No Embarcado TR2', 'No Entregado', 'No Recibido CEDIS'];
                 if (estadosRetorno.includes(item.estado) && !dataGuiasEscaneadas.has(item.guia) && item.estado !== 'No Recibido CEDIS') {
-                    
-                    const matchesSearch = item.guia.toLowerCase().includes(query) || item.conductor.toLowerCase().includes(query) || String(item.viaje).includes(query);
-                    
-                    if (matchesSearch) {
+                    if (item.estado === 'No Embarcado TR2') stats.pendNoEmb++;
+                    if (item.estado === 'No Entregado') stats.pendNoEnt++;
+
+                    const match = item.guia.toLowerCase().includes(query) || item.conductor.toLowerCase().includes(query) || String(item.viaje).includes(query);
+                    if (match) {
                         pendientesCount++;
                         tableHtml += `
-                            <tr class="hover:bg-white/5 master-row" data-proveedor="${item.proveedor}">
-                                <td class="px-6 py-3 text-gray-400 m-categoria font-medium italic">${item.categoria}</td>
-                                <td class="px-6 py-3 font-bold text-gray-300 m-viaje">${item.viaje}</td>
-                                <td class="px-6 py-3 text-gray-400 m-conductor">${item.conductor}</td>
-                                <td class="px-6 py-3 font-black text-red-500 m-guia">${item.guia}</td>
-                                <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase m-estado ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
+                            <tr class="hover:bg-white/5 master-row">
+                                <td class="px-4 py-2 text-gray-500 italic">${item.categoria}</td>
+                                <td class="px-4 py-2 font-bold">${item.viaje}</td>
+                                <td class="px-4 py-2 text-gray-400">${item.conductor}</td>
+                                <td class="px-4 py-2 font-bold text-red-500">${item.guia}</td>
+                                <td class="px-4 py-2"><span class="px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${item.estado === 'No Entregado' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}">${item.estado}</span></td>
                             </tr>`;
-                        
-                        if(item.estado === 'No Entregado') {
-                            driverNoEntregados[item.conductor] = (driverNoEntregados[item.conductor] || 0) + 1;
-                        }
+                        if(item.estado === 'No Entregado') driverNoEntregados[item.conductor] = (driverNoEntregados[item.conductor] || 0) + 1;
                     }
                 }
             });
 
-            // Actualizar UI
             document.getElementById('display-total-guias').innerText = stats.totalGuias;
             document.getElementById('total-pending-count').innerText = pendientesCount;
-            document.getElementById('count-no-emb').innerText = stats.noEmb.total;
-            document.getElementById('sub-no-emb-amz').innerText = stats.noEmb.amz;
-            document.getElementById('sub-no-emb-same').innerText = stats.noEmb.same;
-            document.getElementById('count-no-rec').innerText = stats.noRec.total;
-            document.getElementById('sub-no-rec-amz').innerText = stats.noRec.amz;
-            document.getElementById('sub-no-rec-same').innerText = stats.noRec.same;
-            document.getElementById('count-no-ent').innerText = stats.noEnt.total;
-            document.getElementById('sub-no-ent-amz').innerText = stats.noEnt.amz;
-            document.getElementById('sub-no-ent-same').innerText = stats.noEnt.same;
-            document.getElementById('count-in-route').innerText = stats.ruta.total;
-            document.getElementById('sub-ruta-amz').innerText = stats.ruta.amz;
-            document.getElementById('sub-ruta-same').innerText = stats.ruta.same;
-            document.getElementById('count-drivers-route').innerText = stats.choferes.total.size;
-            document.getElementById('sub-chofer-amz').innerText = stats.choferes.amz.size;
-            document.getElementById('sub-chofer-same').innerText = stats.choferes.same.size;
+            document.getElementById('sub-pending-no-emb').innerText = stats.pendNoEmb;
+            document.getElementById('sub-pending-no-ent').innerText = stats.pendNoEnt;
+            document.getElementById('count-no-emb').innerText = stats.noEmb.t;
+            document.getElementById('sub-no-emb-amz').innerText = stats.noEmb.a;
+            document.getElementById('sub-no-emb-same').innerText = stats.noEmb.s;
+            document.getElementById('count-no-rec').innerText = stats.noRec.t;
+            document.getElementById('sub-no-rec-amz').innerText = stats.noRec.a;
+            document.getElementById('sub-no-rec-same').innerText = stats.noRec.s;
+            document.getElementById('count-no-ent').innerText = stats.noEnt.t;
+            document.getElementById('sub-no-ent-amz').innerText = stats.noEnt.a;
+            document.getElementById('sub-no-ent-same').innerText = stats.noEnt.s;
+            document.getElementById('count-in-route').innerText = stats.ruta.t;
+            document.getElementById('sub-ruta-amz').innerText = stats.ruta.a;
+            document.getElementById('sub-ruta-same').innerText = stats.ruta.s;
+            document.getElementById('count-drivers-route').innerText = stats.choferes.t.size;
+            document.getElementById('sub-chofer-amz').innerText = stats.choferes.a.size;
+            document.getElementById('sub-chofer-same').innerText = stats.choferes.s.size;
+            document.getElementById('pending-list-body').innerHTML = tableHtml || '<tr><td colspan="5" class="p-10 text-center">Sin resultados.</td></tr>';
 
-            const container = document.getElementById('pending-list-body');
-            container.innerHTML = tableHtml || '<tr><td colspan="5" class="p-20 text-center text-gray-600">Sin resultados.</td></tr>';
-
-            // Actualizar Gráfica y Lista de Choferes
-            const sortedDrivers = Object.entries(driverNoEntregados).sort((a, b) => b[1] - a[1]);
-            renderChart(sortedDrivers.slice(0, 5));
-            const driverContainer = document.getElementById('driver-summary-list');
-            driverContainer.innerHTML = sortedDrivers.map(([name, count]) => `
-                <div class="flex justify-between items-center p-2.5 hover:bg-white/5 rounded-lg transition">
-                    <span class="text-[10px] text-gray-300 truncate d-name font-medium uppercase">${name}</span>
-                    <span class="text-xs font-black text-red-500 bg-red-500/10 px-2.5 py-1 rounded d-count">${count}</span>
+            const sorted = Object.entries(driverNoEntregados).sort((a,b) => b[1]-a[1]);
+            renderChart(sorted.slice(0, 5));
+            document.getElementById('driver-summary-list').innerHTML = sorted.map(([n, c]) => `
+                <div class="flex justify-between items-center py-1.5 px-1">
+                    <span class="truncate pr-2 uppercase font-medium text-gray-400 text-[9px]">${n}</span>
+                    <span class="font-black text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded text-[10px]">${c}</span>
                 </div>
             `).join('');
         }
 
-        function smartFilter() {
-            renderUI();
-        }
-
-        function sortTable(n) {
-            const table = document.getElementById("table-pending");
-            let rows, switching, i, x, y, shouldSwitch, dir;
-            switching = true;
-            dir = (currentSortCol === n && sortAsc) ? "desc" : "asc";
-            sortAsc = (dir === "asc");
-            currentSortCol = n;
-
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-                for (i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
-                    if (dir == "asc") {
-                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) { shouldSwitch = true; break; }
-                    } else if (dir == "desc") {
-                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) { shouldSwitch = true; break; }
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                }
-            }
-            const headers = table.querySelectorAll('th i');
-            headers.forEach(icon => icon.className = "fas fa-sort ml-1 opacity-30");
-            const currentIcon = table.querySelectorAll('th')[n].querySelector('i');
-            currentIcon.className = dir === "asc" ? "fas fa-sort-up ml-1 text-red-600 opacity-100" : "fas fa-sort-down ml-1 text-red-600 opacity-100";
-        }
+        function smartFilter() { renderUI(); }
 
         function renderChart(data) {
             const ctx = document.getElementById('chart-pendientes').getContext('2d');
@@ -420,31 +314,76 @@
                 type: 'bar',
                 data: {
                     labels: data.map(i => i[0].split(' ')[0]),
-                    datasets: [{ data: data.map(i => i[1]), backgroundColor: '#dc2626', borderRadius: 4 }]
+                    datasets: [{ data: data.map(i => i[1]), backgroundColor: '#dc2626', borderRadius: 2 }]
                 },
                 options: {
                     indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { beginAtZero: true, grid: { color: '#2d2d2d' }, ticks: { color: '#9ca3af', font: { size: 9 } } },
-                        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } }
+                        x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#666', font: { size: 8 } } },
+                        y: { grid: { display: false }, ticks: { color: '#999', font: { size: 8 } } }
                     }
                 }
             });
         }
 
+        function sortTable(n) {
+            const tableBody = document.getElementById("pending-list-body");
+            const rows = Array.from(tableBody.querySelectorAll(".master-row"));
+            if (rows.length === 0) return;
+
+            if (currentSortCol === n) {
+                sortAsc = !sortAsc;
+            } else {
+                sortAsc = true;
+                currentSortCol = n;
+            }
+
+            const sortedRows = rows.sort((a, b) => {
+                const valA = a.cells[n].innerText.trim().toLowerCase();
+                const valB = b.cells[n].innerText.trim().toLowerCase();
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return sortAsc ? numA - numB : numB - numA;
+                }
+                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            });
+
+            const fragment = document.createDocumentFragment();
+            sortedRows.forEach(row => fragment.appendChild(row));
+            tableBody.innerHTML = "";
+            tableBody.appendChild(fragment);
+            updateSortIcons(n);
+        }
+
+        function updateSortIcons(n) {
+            const headers = document.querySelectorAll("th.sortable i");
+            headers.forEach((icon, index) => {
+                if (index === n) {
+                    icon.className = sortAsc ? "fas fa-sort-up ml-1" : "fas fa-sort-down ml-1";
+                    icon.parentElement.classList.add("text-white");
+                    icon.classList.remove("opacity-30");
+                } else {
+                    icon.className = "fas fa-sort ml-1 opacity-30";
+                    icon.parentElement.classList.remove("text-white");
+                }
+            });
+        }
+
         function copyDriverSummary() {
-            let text = "CHOFER\tNO ENTREGADOS\n";
-            document.querySelectorAll('#driver-summary-list > div').forEach(row => { text += `${row.querySelector('.d-name').innerText}\t${row.querySelector('.d-count').innerText}\n`; });
+            let text = "CHOFER\tCANT\n";
+            document.querySelectorAll('#driver-summary-list > div').forEach(r => { text += `${r.children[0].innerText}\t${r.children[1].innerText}\n`; });
             navigator.clipboard.writeText(text).then(() => alert("Copiado."));
         }
 
         function copyTableToSheets() {
-            let text = "CATEGORÍA\tVIAJE\tCONDUCTOR\tGUIA\tESTATUS\n";
-            document.querySelectorAll('.master-row').forEach(row => { 
-                if(!row.classList.contains('hidden')) text += `${row.querySelector('.m-categoria').innerText}\t${row.querySelector('.m-viaje').innerText}\t${row.querySelector('.m-conductor').innerText}\t${row.querySelector('.m-guia').innerText}\t${row.querySelector('.m-estado').innerText}\n`; 
+            let text = "CAT\tVIAJE\tCHOFER\tGUIA\tESTADO\n";
+            document.querySelectorAll('.master-row').forEach(r => { 
+                text += `${r.cells[0].innerText}\t${r.cells[1].innerText}\t${r.cells[2].innerText}\t${r.cells[3].innerText}\t${r.cells[4].innerText}\n`; 
             });
-            navigator.clipboard.writeText(text).then(() => alert("Copiado para Sheets."));
+            navigator.clipboard.writeText(text).then(() => alert("Copiado."));
         }
     </script>
 </body>
