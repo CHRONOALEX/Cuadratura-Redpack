@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuadratura Redpack - Pendientes</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>Cuadratura y Filtro de Estados - Redpack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght=300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,7 +34,7 @@
 <body class="font-sans antialiased text-xs">
 
     <header class="bg-darkGray sticky top-0 z-50 border-b border-borderGray shadow-xl">
-        <div class="container mx-auto px-4 py-2">
+        <div class="container mx-auto px-4 py-3">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 
                 <div class="flex items-center justify-between lg:justify-start gap-4">
@@ -48,9 +48,9 @@
                     <div class="flex items-center gap-2">
                         <input type="file" id="fileViajes" class="hidden" accept=".xlsx, .xls">
                         <label for="fileViajes" class="cursor-pointer bg-borderGray hover:bg-white hover:text-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center">
-                            <i class="fas fa-file-excel mr-1.5"></i> SUBIR
+                            <i class="fas fa-file-excel mr-1.5"></i> SUBIR ARCHIVO
                         </label>
-                        <button id="btn-process" onclick="processData()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black hover:bg-red-700 transition flex items-center">
+                        <button id="btn-process" onclick="processAllData()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black hover:bg-red-700 transition flex items-center">
                             <span>PROCESAR</span>
                             <i id="btn-loader" class="fas fa-circle-notch loading-spinner hidden ml-1.5"></i>
                         </button>
@@ -80,21 +80,21 @@
                     </div>
                 </div>
 
-                <div id="info-display" class="hidden lg:flex items-center gap-2">
-                    <div class="bg-carbon border border-borderGray px-2 py-1 rounded-lg flex flex-col items-end leading-none">
-                        <span class="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">Fecha</span>
-                        <span id="display-fecha" class="text-[10px] font-black text-white">---</span>
+                <div id="info-display" class="hidden lg:flex items-center gap-3">
+                    <div class="bg-carbon border border-borderGray px-4 py-2 rounded-xl flex flex-col items-end leading-tight min-w-[110px]">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fecha</span>
+                        <span id="display-fecha" class="text-sm font-black text-white tracking-wide">---</span>
                     </div>
-                    <div class="bg-carbon border border-borderGray px-2 py-1 rounded-lg flex flex-col items-end leading-none">
-                        <span class="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">Total Guías</span>
-                        <span id="display-total-guias" class="text-[10px] font-black text-white">0</span>
+                    <div class="bg-carbon border border-borderGray px-4 py-2 rounded-xl flex flex-col items-end leading-tight min-w-[110px]">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Guías</span>
+                        <span id="display-total-guias" class="text-sm font-black text-red-500 tracking-wide">0</span>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-4">
+    <main class="container mx-auto px-4 py-4 space-y-6">
         <section id="section-pending">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
                 <div class="card-stats bg-darkGray p-3 rounded-xl border border-borderGray border-l-4 border-l-red-600 flex flex-col justify-between">
@@ -129,7 +129,7 @@
                 <div class="lg:col-span-3 bg-darkGray rounded-xl border border-borderGray flex flex-col">
                     <div class="p-3 bg-carbon border-b border-borderGray flex justify-between items-center">
                         <h3 class="text-[9px] font-bold uppercase text-gray-400">Listado de Pendientes</h3>
-                        <button onclick="copyTableToSheets()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold">COPIAR SHEETS</button>
+                        <button onclick="copyTableToSheets()" class="bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold hover:bg-red-700 transition">COPIAR SHEETS</button>
                     </div>
                     <div class="overflow-x-auto max-h-[500px]">
                         <table class="w-full text-left border-collapse min-w-[600px]" id="table-pending">
@@ -150,26 +150,109 @@
                 </div>
             </div>
         </section>
+
+        <section id="section-status-filter" class="bg-darkGray rounded-xl border border-borderGray flex flex-col">
+            <div class="p-3 bg-carbon border-b border-borderGray flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <h3 class="text-[9px] font-bold uppercase text-gray-400 tracking-wider">Filtro de Paquetes por Estado</h3>
+                    <span id="statusMsg" class="text-[9px] text-gray-500 font-medium">Sube un archivo de viajes para comenzar.</span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-56">
+                        <select id="estadoFilter" onchange="filterAndRenderTable()" disabled 
+                            class="bg-carbon border border-borderGray text-white text-[10px] rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-1.5 outline-none appearance-none pr-8 cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed">
+                            <option value="">-- Selecciona un archivo primero --</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 text-[10px]">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <button id="copyBtn" onclick="copyToClipboard()" disabled class="bg-red-600 text-white px-2 py-1.5 rounded text-[9px] font-bold hover:bg-red-700 transition whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
+                        COPIAR ESTADOS
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left border-collapse min-w-[600px]" id="dataTable">
+                    <thead class="bg-carbon text-gray-500 text-[8px] uppercase sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-2 border-b border-borderGray">Estado</th>
+                            <th class="px-4 py-2 border-b border-borderGray">IdViaje</th>
+                            <th class="px-4 py-2 border-b border-borderGray">Pedido Referencia externa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="text-[10px] divide-y divide-borderGray/50">
+                        <tr>
+                            <td colspan="3" class="p-10 text-center text-gray-600">No hay datos cargados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN7sZtB7BFo25RS8Wt37S6J_0up-4YQunMv6cSlOndogunCZ8YK9prMqF5wBm1c1-v9JqrG3wzTOo/pub?output=csv';
         let dataViajes = [], dataParadas = [], dataGuiasEscaneadas = new Set(), rawProcessedStats = [];
+        let rawDataFilter = []; 
         let chartInstance = null;
         let currentSortCol = -1;
         let sortAsc = true;
 
         document.getElementById('fileViajes').addEventListener('change', (e) => {
             const file = e.target.files[0];
+            if (!file) return;
+
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.innerText = "Procesando archivo...";
+            statusMsg.style.color = "#aaa";
+
             const reader = new FileReader();
             reader.onload = (evt) => {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]);
-                dataParadas = XLSX.utils.sheet_to_json(wb.Sheets["Paradas"]);
-                const jornadaRaw = dataViajes[0]?.Jornada || "";
-                const dateMatch = jornadaRaw.match(/\d{2}\/\d{2}\/\d{4}/);
-                document.getElementById('display-fecha').innerText = dateMatch ? dateMatch[0] : "S/F";
-                document.getElementById('info-display').classList.remove('hidden');
+                try {
+                    const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                    
+                    dataViajes = XLSX.utils.sheet_to_json(wb.Sheets["Viajes"]) || [];
+                    
+                    const targetSheetName = wb.SheetNames.find(name => name.trim().toLowerCase() === 'paradas');
+                    if (!targetSheetName) {
+                        statusMsg.innerText = "Error: No se encontró la hoja 'Paradas'.";
+                        statusMsg.style.color = "#ff6b6b";
+                        return;
+                    }
+                    
+                    dataParadas = XLSX.utils.sheet_to_json(wb.Sheets[targetSheetName]) || [];
+                    
+                    const jornadaRaw = dataViajes[0]?.Jornada || "";
+                    const dateMatch = jornadaRaw.match(/\d{2}\/\d{2}\/\d{4}/);
+                    document.getElementById('display-fecha').innerText = dateMatch ? dateMatch[0] : "S/F";
+                    document.getElementById('info-display').classList.remove('hidden');
+
+                    if (dataParadas.length === 0) {
+                        statusMsg.innerText = "La hoja 'Paradas' está vacía.";
+                        statusMsg.style.color = "#ff6b6b";
+                        return;
+                    }
+
+                    rawDataFilter = dataParadas.map(row => {
+                        return {
+                            estado: row['Estado'] !== undefined ? String(row['Estado']).trim() : '',
+                            idViaje: row['IdViaje'] !== undefined ? String(row['IdViaje']).trim() : '',
+                            referencia: row['Pedido Referencia externa'] !== undefined ? String(row['Pedido Referencia externa']).trim() : ''
+                        };
+                    });
+
+                    statusMsg.innerText = `Archivo cargado. ${rawDataFilter.length} registros en 'Paradas'.`;
+                    statusMsg.style.color = "#ef4444"; 
+
+                    populateEstadoFilter();
+
+                } catch (error) {
+                    console.error(error);
+                    statusMsg.innerText = "Error al leer el archivo Excel.";
+                    statusMsg.style.color = "#ff6b6b";
+                }
             };
             reader.readAsBinaryString(file);
         });
@@ -190,9 +273,10 @@
             } catch (error) { return new Set(); }
         }
 
-        async function processData() {
+        async function processAllData() {
             if (!dataViajes.length) return alert("Sube el archivo primero.");
             document.getElementById('btn-loader').classList.remove('hidden');
+            
             dataGuiasEscaneadas = await fetchGoogleSheetsData();
             rawProcessedStats = []; 
             const viajeConductorMap = {};
@@ -220,6 +304,8 @@
             });
 
             renderUI();
+            filterAndRenderTable();
+            
             document.getElementById('btn-loader').classList.add('hidden');
         }
 
@@ -238,7 +324,12 @@
 
             rawProcessedStats.forEach(item => {
                 if (item.proveedor !== provSel) return;
-                stats.totalGuias++;
+                
+                // Exclusión solicitada: No contar guías con estado "No Recibido CEDIS" en el Total General
+                if (item.estado !== 'No Recibido CEDIS') {
+                    stats.totalGuias++;
+                }
+                
                 const esAmz = item.categoria === "Amazon";
                 const esSame = item.categoria === "Amazon_SameDay";
 
@@ -384,6 +475,98 @@
                 text += `${r.cells[0].innerText}\t${r.cells[1].innerText}\t${r.cells[2].innerText}\t${r.cells[3].innerText}\t${r.cells[4].innerText}\n`; 
             });
             navigator.clipboard.writeText(text).then(() => alert("Copiado."));
+        }
+
+        function populateEstadoFilter() {
+            const filterSelect = document.getElementById('estadoFilter');
+            const estados = [...new Set(rawDataFilter.map(item => item.estado))].filter(e => e !== '');
+            
+            filterSelect.innerHTML = '<option value="TODOS">-- TODOS LOS ESTADOS --</option>';
+            
+            estados.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado;
+                option.innerText = estado;
+                filterSelect.appendChild(option);
+            });
+
+            filterSelect.disabled = false;
+            document.getElementById('copyBtn').disabled = false;
+        }
+
+        function filterAndRenderTable() {
+            const selectedEstado = document.getElementById('estadoFilter').value;
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            if (rawDataFilter.length === 0) return;
+
+            let filtered = [...rawDataFilter];
+            if (selectedEstado && selectedEstado !== 'TODOS') {
+                filtered = rawDataFilter.filter(item => item.estado === selectedEstado);
+            }
+
+            filtered.sort((a, b) => {
+                const isA_TR2 = a.estado.toLowerCase() === 'no embarcado tr2';
+                const isB_TR2 = b.estado.toLowerCase() === 'no embarcado tr2';
+
+                if (isA_TR2 && !isB_TR2) return -1;
+                if (!isA_TR2 && isB_TR2) return 1;
+
+                const numA = parseFloat(a.idViaje) || 0;
+                const numB = parseFloat(b.idViaje) || 0;
+                return numA - numB;
+            });
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-500">Ningún dato coincide con el filtro</td></tr>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5";
+                
+                const isTR2 = item.estado.toLowerCase() === 'no embarcado tr2';
+                const colorClass = isTR2 ? 'class="px-4 py-2 font-bold text-red-400"' : 'class="px-4 py-2 text-gray-400"';
+
+                tr.innerHTML = `
+                    <td ${colorClass}>${item.estado}</td>
+                    <td class="px-4 py-2 font-bold">${item.idViaje}</td>
+                    <td class="px-4 py-2 text-gray-300">${item.referencia}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function copyToClipboard() {
+            const table = document.getElementById('dataTable');
+            let tsvString = '';
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('th, td');
+                const rowData = [];
+                cols.forEach(col => {
+                    let text = col.innerText.replace(/\n/g, " ");
+                    rowData.push(text);
+                });
+                tsvString += rowData.join('\t') + '\n';
+            });
+
+            navigator.clipboard.writeText(tsvString).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.innerText;
+                copyBtn.innerText = '¡COPIADO!';
+                copyBtn.style.backgroundColor = '#10b981'; 
+                
+                setTimeout(() => {
+                    copyBtn.innerText = originalText;
+                    copyBtn.style.backgroundColor = '#dc2626';
+                }, 2000);
+            }).catch(err => {
+                alert('No se pudo copiar automáticamente: ', err);
+            });
         }
     </script>
 </body>
